@@ -135,7 +135,8 @@
         }
 
         function getEyeHeight() {
-            return $("#eyeHeightSpinner").spinner("value");
+            // return $("#eyeHeightSpinner").spinner("value");
+            return 1.5;
         }
 
         var xAxis = vec3.fromValues(1, 0, 0);
@@ -146,83 +147,91 @@
             return $("#mazeTextArea").val().trim().split(/\s/);
         }
         function createMazeFromStrings(strings) {
-            var sizeY = strings.length;
-            var sizeX = strings[0].length;
+            // var sizeY = strings.length;
+            // var sizeX = strings[0].length;
 
-            var x, y;
-            for (y = 0; y < sizeY; y++) {
-                if (strings[y].length != sizeX) {
-                    throw new Error("Mesh is not a rectangle!");
-                }
-            }
+            // var x, y;
+            // for (y = 0; y < sizeY; y++) {
+            //     if (strings[y].length != sizeX) {
+            //         throw new Error("Mesh is not a rectangle!");
+            //     }
+            // }
 
-            var data = [];
-            for (x = 0; x < sizeX; x++) {
-                var a = [];
-                for (y = 0; y < sizeY; y++) {
-                    a.push(null);
-                }
-                data.push(a);
-            }
+            // var data = [];
+            // for (x = 0; x < sizeX; x++) {
+            //     var a = [];
+            //     for (y = 0; y < sizeY; y++) {
+            //         a.push(null);
+            //     }
+            //     data.push(a);
+            // }
 
-            var startPosition = null;
-            var startHeading = null;
-            for (x = 0; x < sizeX; x++) {
-                for (y = 0; y < sizeY; y++) {
-                    var c = strings[sizeY - y - 1][x];
-                    if (c == "#") {
-                        data[x][y] = 1;
-                    } else {
-                        data[x][y] = 0;
-                    }
+            // var startPosition = null;
+            // var startHeading = null;
+            // for (x = 0; x < sizeX; x++) {
+            //     for (y = 0; y < sizeY; y++) {
+            //         var c = strings[sizeY - y - 1][x];
+            //         if (c == "#") {
+            //             data[x][y] = 1;
+            //         } else {
+            //             data[x][y] = 0;
+            //         }
 
-                    if (c == "N" || c == "E" || c == "W" || c == "S") {
-                        if (startPosition == null) {
-                            if (c == "N") {
-                                startHeading = Math.PI / 2;
-                            } else if (c == "E") {
-                                startHeading = 0.0;
-                            } else if (c == "W") {
-                                startHeading = Math.PI;
-                            } else if (c == "S") {
-                                startHeading = 3 * Math.PI / 2;
-                            }
-                            startPosition = [x, y];
-                        } else {
-                            throw new Error("There are more than one starting point!");
-                        }
-                    }
-                }
-            }
+            //         if (c == "N" || c == "E" || c == "W" || c == "S") {
+            //             if (startPosition == null) {
+            //                 if (c == "N") {
+            //                     startHeading = Math.PI / 2;
+            //                 } else if (c == "E") {
+            //                     startHeading = 0.0;
+            //                 } else if (c == "W") {
+            //                     startHeading = Math.PI;
+            //                 } else if (c == "S") {
+            //                     startHeading = 3 * Math.PI / 2;
+            //                 }
+            //                 startPosition = [x, y];
+            //             } else {
+            //                 throw new Error("There are more than one starting point!");
+            //             }
+            //         }
+            //     }
+            // }
 
-            if (startPosition == null) {
-                throw new Error("There is no starting point!");
-            }
+            // if (startPosition == null) {
+            //     throw new Error("There is no starting point!");
+            // }
 
-            for (x = 0; x < sizeX; x++) {
-                if (data[x][0] != 1) {
-                    throw new Error("Boundary is not complete!");
-                }
-                if (data[x][sizeY - 1] != 1) {
-                    throw new Error("Boundary is not complete!");
-                }
-            }
-            for (y = 0; y < sizeY; y++) {
-                if (data[0][y] != 1) {
-                    throw new Error("Boundary is not complete!");
-                }
-                if (data[sizeX - 1][y] != 1) {
-                    throw new Error("Boundary is not complete!");
-                }
-            }
+            // for (x = 0; x < sizeX; x++) {
+            //     if (data[x][0] != 1) {
+            //         throw new Error("Boundary is not complete!");
+            //     }
+            //     if (data[x][sizeY - 1] != 1) {
+            //         throw new Error("Boundary is not complete!");
+            //     }
+            // }
+            // for (y = 0; y < sizeY; y++) {
+            //     if (data[0][y] != 1) {
+            //         throw new Error("Boundary is not complete!");
+            //     }
+            //     if (data[sizeX - 1][y] != 1) {
+            //         throw new Error("Boundary is not complete!");
+            //     }
+            // }
+
+            // return {
+            //     sizeX: sizeX,
+            //     sizeY: sizeY,
+            //     data: data,
+            //     startHeading: startHeading,
+            //     startPosition: startPosition
+            // };
 
             return {
-                sizeX: sizeX,
-                sizeY: sizeY,
-                data: data,
-                startHeading: startHeading,
-                startPosition: startPosition
-            };
+                sizeX: 5,
+                sizeY: 5,
+                data: null,
+                startHeading: 0,
+                startPosition: [0, 5]
+            }
         }
 
         function createShapeData() {
@@ -361,6 +370,44 @@
 
             return shapeData;
         }
+
+        function createRoof(x, y) {
+            var shapeData = createShapeData();
+            var v = shapeData.positions.length / 3;
+            shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+            var i;
+            for (i = 0; i < 4; i++) {
+                shapeData.normals.push([0.0, 0.0, -1.0]);
+            }
+
+            shapeData.positions.push(x, y, 1.0);
+            shapeData.texCoords.push(0.0, 0.0);
+
+            shapeData.positions.push(x + 1, y + 1, 1.0);
+            shapeData.texCoords.push(1.0, 1.0);
+
+            shapeData.positions.push(x, y + 1, 1.0);
+            shapeData.texCoords.push(0.0, 1.0);
+
+            shapeData.positions.push(x + 1, y, 1.0);
+            shapeData.texCoords.push(1.0, 0.0);
+
+            return shapeData;
+        }
+
+        function createCube(gl, x, y) {
+            shapes = [];
+            shapes.push(createShape(gl, createNorthWall(x, y)));
+            shapes.push(createShape(gl, createSouthWall(x, y)));
+            shapes.push(createShape(gl, createEastWall(x, y)));
+            shapes.push(createShape(gl, createWestWall(x, y)));
+            shapes.push(createShape(gl, createFloor(x, y)));
+            shapes.push(createShape(gl, createRoof(x, y)));
+            return shapes;
+        }
+
+
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -541,7 +588,7 @@
             control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                 startPos[1] * 1.0 + 0.5,
                 0.0);
-         
+
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
@@ -579,8 +626,8 @@
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
-                    control.currentPosition[0],
-                    control.currentPosition[1],
+                    control.currentPosition[0] - 2,
+                    control.currentPosition[1] - 2,
                     getEyeHeight()
                 );
                 var target = vec3.create();
@@ -624,7 +671,7 @@
                     }
                 } else if (event.key == "ArrowUp") {
                     if (control.mode == NO_CONTROL) {
-                     
+
                         currentX = Math.round(control.currentPosition[0] - 0.5);
                         currentY = Math.round(control.currentPosition[1] - 0.5);
                         dx = Math.round(Math.cos(control.currentHeading));
@@ -672,8 +719,8 @@
                                 0.0
                             );
                             control.toPosition = vec3.fromValues(
-                                targetPos[0]+ 0.5,
-                                targetPos[1]+ 0.5,
+                                targetPos[0] + 0.5,
+                                targetPos[1] + 0.5,
                                 0.0
                             )
                         }
@@ -683,63 +730,65 @@
             });
 
             function canGo(targetPos) {
-                if (targetPos[0] < 0
-                    || targetPos[0] >= maze.data.length
-                    || targetPos[1] < 0
-                    || targetPos[1] >= maze.data[0].length
-                    || maze.data[targetPos[0]][targetPos[1]] == 1) {
-                    return false;
-                }
+                // if (targetPos[0] < 0
+                //     || targetPos[0] >= maze.data.length
+                //     || targetPos[1] < 0
+                //     || targetPos[1] >= maze.data[0].length
+                //     || maze.data[targetPos[0]][targetPos[1]] == 1) {
+                //     return false;
+                // }
                 return true;
             }
 
-           var floors = [];
-           var shapes = [];
-           var counter = 0;
-          
-            function reset(){
-            control = {
-                mode: NO_CONTROL,
-                rotateRate: 0.005, //0.004,
-                moveRate: 0.005,
-                displacement: null,
-                currentHeading: maze.startHeading,
-                fromHeading: null,
-                toHeading: null,
-                currentPosition: null,
-                fromPosition: maze.startPosition,
-                toPosition: null
-            };
-            startPos = maze.startPosition;
+            var floors = [];
+            var shapes = [];
+            var counter = 0;
 
-            control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
-                startPos[1] * 1.0 + 0.5,
-                0.0);
+            function reset() {
+                control = {
+                    mode: NO_CONTROL,
+                    rotateRate: 0.005, //0.004,
+                    moveRate: 0.005,
+                    displacement: null,
+                    currentHeading: maze.startHeading,
+                    fromHeading: null,
+                    toHeading: null,
+                    currentPosition: null,
+                    fromPosition: maze.startPosition,
+                    toPosition: null
+                };
+                startPos = maze.startPosition;
+
+                control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
+                    startPos[1] * 1.0 + 0.5,
+                    0.0);
                 floors = [];
                 shapes = [];
                 counter = 0;
-                for (var x = 0; x < maze.sizeX; x++) {
-                    for (var y = 0; y < maze.sizeY; y++) {
-                        floors.push(createShape(gl, createFloor(x, y)));
-                        if (maze.data[x][y] == 1) {
-                            // create a wall
-                            shapes.push(createShape(gl, createNorthWall(x, y)));
-                            shapes.push(createShape(gl, createSouthWall(x, y)));
-                            shapes.push(createShape(gl, createEastWall(x, y)));
-                            shapes.push(createShape(gl, createWestWall(x, y)));
-                        }
-                        counter++;
-                    }
-                }
+                // for (var x = 0; x < maze.sizeX; x++) {
+                //     for (var y = 0; y < maze.sizeY; y++) {
+                //         floors.push(createShape(gl, createFloor(x, y)));
+                //         if (maze.data[x][y] == 1) {
+                //             // create a wall
+                //             shapes.push(createShape(gl, createNorthWall(x, y)));
+                //             shapes.push(createShape(gl, createSouthWall(x, y)));
+                //             shapes.push(createShape(gl, createEastWall(x, y)));
+                //             shapes.push(createShape(gl, createWestWall(x, y)));
+                //         }
+                //         counter++;
+                //     }
+                // }
+                shapes = createCube(gl, 5, 5);
+
 
             }
-           reset();            
-          function updateWebGL() {
-           
-             if (shouldUpdate){  
-                shouldUpdate = false; 
-                reset();         
-               }
+            reset();
+            function updateWebGL() {
+
+                if (shouldUpdate) {
+                    shouldUpdate = false;
+                    reset();
+                }
 
                 var time = performance.now();
                 var elapsed = time - lastTime;
@@ -773,16 +822,16 @@
                     var movey = 0;
                     // var vecx = vec3.fromValues(1.0, 0.0, 0.0);
                     // var vecy = vec3.fromValues(0.0, 1.0, 0.0);
-                    if (control.toPosition[1] > control.fromPosition[1]){
+                    if (control.toPosition[1] > control.fromPosition[1]) {
                         movey = 1;
-                    }else if (control.toPosition[1] < control.fromPosition[1]){
+                    } else if (control.toPosition[1] < control.fromPosition[1]) {
                         movey = -1;
-                    } else if (control.toPosition[0] > control.fromPosition[0]){
+                    } else if (control.toPosition[0] > control.fromPosition[0]) {
                         movex = 1;
-                    }else if (control.toPosition[0] < control.fromPosition[0]){
+                    } else if (control.toPosition[0] < control.fromPosition[0]) {
                         movex = -1;
                     }
-                    control.currentPosition[0] +=  movex * control.moveRate * elapsed;
+                    control.currentPosition[0] += movex * control.moveRate * elapsed;
                     control.currentPosition[1] += movey * control.moveRate * elapsed;
                     if (movex == 1.0) {
                         if (control.currentPosition[0] > control.toPosition[0]) {
@@ -804,11 +853,11 @@
                             control.currentPosition[1] = control.toPosition[1];
                             control.mode = NO_CONTROL;
                         }
-                    } 
+                    }
 
                     // vec3.copy(control.currentPosition, control.toPosition);
                     // control.mode = NO_CONTROL;
-                    
+
                 }
 
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
