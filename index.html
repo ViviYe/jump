@@ -33,6 +33,7 @@
         </div>
 
         <table class="table table-bordered">
+
             <tr>
                 <td align="right"><b>Field of view:</b></td>
                 <td>
@@ -42,9 +43,28 @@
             <tr>
                 <td align="right"><b>Eye height:</b></td>
                 <td>
-                    <input type="text" id="eyeHeightSpinner" value="0.5">
+                    <input type="text" id="eyeHeightSpinner" value="1.5">
                 </td>
             </tr>
+            <tr>
+                <td align="right"><b>rot x:</b></td>
+                <td>
+                    <input type="text" id="rotX" value="0.5">
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><b>rot y:</b></td>
+                <td>
+                    <input type="text" id="rotY" value="0.5">
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><b>rot z:</b></td>
+                <td>
+                    <input type="text" id="rotZ" value="0.5">
+                </td>
+            </tr>
+
             <tr>
                 <td align="right"><b>Maze:</b></td>
                 <td>
@@ -59,6 +79,8 @@
                 </td>
             </tr>
         </table>
+
+
 
         <h2>Additional Feature Implemented</h2>
 
@@ -83,22 +105,11 @@
        attribute vec3 vert_position;
        attribute vec2 vert_texCoord;
        varying vec2 geom_texCoord;
-
-        // TODO: Add P, V, M matrices
-        uniform mat4 xform_projMat;
-        uniform mat4 xform_viewMat;
-        uniform mat4 xform_modelMat;
-   
-   
-      // void main() {
-       //    gl_Position = vec4(vert_position, 1.0);
-   
-           // pass the textCoord to the fragment shader
-       //    geom_texCoord = vert_texCoord;
-     //  }
+       uniform mat4 xform_projMat;
+       uniform mat4 xform_viewMat;
+       uniform mat4 xform_modelMat;
 
         void main() {
-            // TODO: Multiply by P*V*M
             gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat * vec4(vert_position, 1.0)));
             geom_texCoord = vert_texCoord;
         }
@@ -125,9 +136,26 @@
             step: 0.1
         });
         $("#eyeHeightSpinner").spinner({
-            min: 0.1,
-            max: 1.0,
-            step: 0.01
+            min: 1.5,
+            max: 2.5,
+            step: 0.1
+        });
+
+        $('#rotX').spinner({
+            min: -360,
+            max: 360,
+            step: 5
+        });
+
+        $('#rotY').spinner({
+            min: -360,
+            max: 360,
+            step: 5
+        });
+        $('#rotZ').spinner({
+            min: -360,
+            max: 360,
+            step: 5
         });
 
         function getFov() {
@@ -135,102 +163,29 @@
         }
 
         function getEyeHeight() {
-            // return $("#eyeHeightSpinner").spinner("value");
-            return 1.5;
+            return $("#eyeHeightSpinner").spinner("value");
         }
 
-        var xAxis = vec3.fromValues(1, 0, 0);
-        var yAxis = vec3.fromValues(0, 1, 0);
-        var zAxis = vec3.fromValues(0, 0, 1);
+        function getRotX() {
+            return $('#rotX').spinner('value') * Math.PI / 180;
+        }
+        function getRotY() {
+            return $('#rotY').spinner('value') * Math.PI / 180;
+        }
+        function getRotZ() {
+            return $('#rotZ').spinner('value') * Math.PI / 180;
+        }
 
         function getMazeStrings() {
             return $("#mazeTextArea").val().trim().split(/\s/);
         }
         function createMazeFromStrings(strings) {
-            // var sizeY = strings.length;
-            // var sizeX = strings[0].length;
-
-            // var x, y;
-            // for (y = 0; y < sizeY; y++) {
-            //     if (strings[y].length != sizeX) {
-            //         throw new Error("Mesh is not a rectangle!");
-            //     }
-            // }
-
-            // var data = [];
-            // for (x = 0; x < sizeX; x++) {
-            //     var a = [];
-            //     for (y = 0; y < sizeY; y++) {
-            //         a.push(null);
-            //     }
-            //     data.push(a);
-            // }
-
-            // var startPosition = null;
-            // var startHeading = null;
-            // for (x = 0; x < sizeX; x++) {
-            //     for (y = 0; y < sizeY; y++) {
-            //         var c = strings[sizeY - y - 1][x];
-            //         if (c == "#") {
-            //             data[x][y] = 1;
-            //         } else {
-            //             data[x][y] = 0;
-            //         }
-
-            //         if (c == "N" || c == "E" || c == "W" || c == "S") {
-            //             if (startPosition == null) {
-            //                 if (c == "N") {
-            //                     startHeading = Math.PI / 2;
-            //                 } else if (c == "E") {
-            //                     startHeading = 0.0;
-            //                 } else if (c == "W") {
-            //                     startHeading = Math.PI;
-            //                 } else if (c == "S") {
-            //                     startHeading = 3 * Math.PI / 2;
-            //                 }
-            //                 startPosition = [x, y];
-            //             } else {
-            //                 throw new Error("There are more than one starting point!");
-            //             }
-            //         }
-            //     }
-            // }
-
-            // if (startPosition == null) {
-            //     throw new Error("There is no starting point!");
-            // }
-
-            // for (x = 0; x < sizeX; x++) {
-            //     if (data[x][0] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            //     if (data[x][sizeY - 1] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            // }
-            // for (y = 0; y < sizeY; y++) {
-            //     if (data[0][y] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            //     if (data[sizeX - 1][y] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            // }
-
-            // return {
-            //     sizeX: sizeX,
-            //     sizeY: sizeY,
-            //     data: data,
-            //     startHeading: startHeading,
-            //     startPosition: startPosition
-            // };
-
             return {
                 sizeX: 5,
                 sizeY: 5,
                 data: null,
-                startHeading: 0,
-                startPosition: [0, 5]
+                startHeading: 0.6,
+                startPosition: [0, 1]
             }
         }
 
@@ -407,7 +362,6 @@
             return shapes;
         }
 
-
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -426,7 +380,6 @@
                     gl = canvas[0].getContext("webgl");
                 }
             } catch (error) {
-                // NO-OP
             }
             if (!gl) {
                 alert("Could not get WebGL context!");
@@ -474,7 +427,7 @@
             }
         }
 
-        function drawShape(gl, program, shape) {
+        function drawShape(gl, program, shape, xf) {
             gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
             var positionLocation = gl.getAttribLocation(program, "vert_position");
             gl.enableVertexAttribArray(positionLocation);
@@ -530,6 +483,10 @@
 
             images.push(image);
         }
+
+        var xAxis = vec3.fromValues(1, 0, 0);
+        var yAxis = vec3.fromValues(0, 1, 0);
+        var zAxis = vec3.fromValues(0, 0, 1);
 
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
@@ -620,14 +577,17 @@
             function getProjMatrix() {
                 var projMat = mat4.create();
                 mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
+                mat4.rotate(projMat, projMat, getRotX(), xAxis);
+                mat4.rotate(projMat, projMat, getRotY(), yAxis);
+                mat4.rotate(projMat, projMat, getRotZ(), zAxis);
                 return projMat;
             }
 
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
-                    control.currentPosition[0] - 2,
-                    control.currentPosition[1] - 2,
+                    control.currentPosition[0] - 1,
+                    control.currentPosition[1] - 1,
                     getEyeHeight()
                 );
                 var target = vec3.create();
@@ -678,25 +638,22 @@
                         dy = Math.round(Math.sin(control.currentHeading));
                         var targetPos = [currentX + dx, currentY + dy];
 
-                        if (canGo(targetPos)) {
-                            control.mode = IS_MOVING;
-                            control.fromPosition = vec3.fromValues(
-                                currentX + 0.5,
-                                currentY + 0.5,
-                                0.0
-                            );
-                            direction = vec3.fromValues(
-                                dx,
-                                dy,
-                                0.0
-                            );
-                            control.toPosition = vec3.fromValues(
-                                targetPos[0] + 0.5,
-                                targetPos[1] + 0.5,
-                                0.0
-                            )
-                        }
-
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
                     }
                 }
                 else if (event.key == "ArrowDown") {
@@ -706,41 +663,26 @@
                         dx = -Math.round(Math.cos(control.currentHeading));
                         dy = -Math.round(Math.sin(control.currentHeading));
                         var targetPos = [currentX + dx, currentY + dy];
-                        if (canGo(targetPos)) {
-                            control.mode = IS_MOVING;
-                            control.fromPosition = vec3.fromValues(
-                                currentX + 0.5,
-                                currentY + 0.5,
-                                0.0
-                            );
-                            direction = vec3.fromValues(
-                                dx,
-                                dy,
-                                0.0
-                            );
-                            control.toPosition = vec3.fromValues(
-                                targetPos[0] + 0.5,
-                                targetPos[1] + 0.5,
-                                0.0
-                            )
-                        }
-
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
                     }
                 }
             });
 
-            function canGo(targetPos) {
-                // if (targetPos[0] < 0
-                //     || targetPos[0] >= maze.data.length
-                //     || targetPos[1] < 0
-                //     || targetPos[1] >= maze.data[0].length
-                //     || maze.data[targetPos[0]][targetPos[1]] == 1) {
-                //     return false;
-                // }
-                return true;
-            }
-
-            var floors = [];
             var shapes = [];
             var counter = 0;
 
@@ -762,29 +704,14 @@
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
-                floors = [];
                 shapes = [];
                 counter = 0;
-                // for (var x = 0; x < maze.sizeX; x++) {
-                //     for (var y = 0; y < maze.sizeY; y++) {
-                //         floors.push(createShape(gl, createFloor(x, y)));
-                //         if (maze.data[x][y] == 1) {
-                //             // create a wall
-                //             shapes.push(createShape(gl, createNorthWall(x, y)));
-                //             shapes.push(createShape(gl, createSouthWall(x, y)));
-                //             shapes.push(createShape(gl, createEastWall(x, y)));
-                //             shapes.push(createShape(gl, createWestWall(x, y)));
-                //         }
-                //         counter++;
-                //     }
-                // }
                 shapes = createCube(gl, 5, 5);
 
 
             }
             reset();
             function updateWebGL() {
-
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
@@ -816,12 +743,8 @@
                     }
 
                 } else if (control.mode == IS_MOVING) {
-
-                    // console.log(control.toPosition[0]);
                     var movex = 0;
                     var movey = 0;
-                    // var vecx = vec3.fromValues(1.0, 0.0, 0.0);
-                    // var vecy = vec3.fromValues(0.0, 1.0, 0.0);
                     if (control.toPosition[1] > control.fromPosition[1]) {
                         movey = 1;
                     } else if (control.toPosition[1] < control.fromPosition[1]) {
@@ -854,10 +777,6 @@
                             control.mode = NO_CONTROL;
                         }
                     }
-
-                    // vec3.copy(control.currentPosition, control.toPosition);
-                    // control.mode = NO_CONTROL;
-
                 }
 
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
@@ -865,29 +784,6 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
 
-                var shapeCounter = 0;
-
-                floors.forEach(floor => {
-                    program0.draw(gl, floor, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureFloor);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-
-                })
                 shapes.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
@@ -907,7 +803,6 @@
                             gl.uniform1i(program0.texture, 0);
                         }
                     });
-                    shapeCounter++;
                 })
                 window.requestAnimationFrame(updateWebGL);
             }
