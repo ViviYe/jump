@@ -88,18 +88,11 @@
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
+        uniform mat4 transform_Mat;
    
-   
-      // void main() {
-       //    gl_Position = vec4(vert_position, 1.0);
-   
-           // pass the textCoord to the fragment shader
-       //    geom_texCoord = vert_texCoord;
-     //  }
-
         void main() {
             // TODO: Multiply by P*V*M
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat * vec4(vert_position, 1.0)));
+            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (transform_Mat * (vec4(vert_position, 1.0)))));
             geom_texCoord = vert_texCoord;
         }
     </script>
@@ -243,7 +236,7 @@
             }
         }
 
-        function createNorthWall(x, y) {
+        function createNorthWall(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -253,22 +246,22 @@
                 shapeData.normals.push([0.0, -1.0, 0.0]);
             }
 
-            shapeData.positions.push(x, y + 1, 0.0);
+            shapeData.positions.push(x, y + 1, z);
             shapeData.texCoords.push(4.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, 0.0);
+            shapeData.positions.push(x + 1, y + 1, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, 1.0);
+            shapeData.positions.push(x + 1, y + 1, z+1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x, y + 1, 1.0);
+            shapeData.positions.push(x, y + 1, z+1);
             shapeData.texCoords.push(4.0, 4.0);
 
             return shapeData;
         }
 
-        function createSouthWall(x, y) {
+        function createSouthWall(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -278,23 +271,23 @@
                 shapeData.normals.push([0.0, 1.0, 0.0]);
             }
 
-            shapeData.positions.push(x, y, 0.0);
+            shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x, y, 1.0);
+            shapeData.positions.push(x, y, z+1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x + 1, y, 1.0);
+            shapeData.positions.push(x + 1, y, z+1);
             shapeData.texCoords.push(4.0, 4.0);
 
-            shapeData.positions.push(x + 1, y, 0.0);
+            shapeData.positions.push(x + 1, y, z);
             shapeData.texCoords.push(4.0, 0.0);
 
             return shapeData;
         }
 
 
-        function createWestWall(x, y) {
+        function createWestWall(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -304,23 +297,23 @@
                 shapeData.normals.push([1.0, 0.0, 0.0]);
             }
 
-            shapeData.positions.push(x, y, 0.0);
+            shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(4.0, 0.0);
 
-            shapeData.positions.push(x, y, 1.0);
+            shapeData.positions.push(x, y, z+1);
             shapeData.texCoords.push(4.0, 4.0);
 
-            shapeData.positions.push(x, y + 1, 1.0);
+            shapeData.positions.push(x, y + 1, z+1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x, y + 1, 0.0);
+            shapeData.positions.push(x, y + 1, z);
             shapeData.texCoords.push(0.0, 0.0);
 
             return shapeData;
         }
 
 
-        function createEastWall(x, y) {
+        function createEastWall(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -330,23 +323,23 @@
                 shapeData.normals.push([-1.0, 0.0, 0.0]);
             }
 
-            shapeData.positions.push(x + 1, y, 0.0);
+            shapeData.positions.push(x + 1, y, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y, 1.0);
+            shapeData.positions.push(x + 1, y, z+1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x + 1, y + 1, 1.0);
+            shapeData.positions.push(x + 1, y + 1, z+1);
             shapeData.texCoords.push(4.0, 4.0);
 
-            shapeData.positions.push(x + 1, y + 1, 0.0);
+            shapeData.positions.push(x + 1, y + 1, z);
             shapeData.texCoords.push(4.0, 0.0);
 
             return shapeData;
         }
 
 
-        function createFloor(x, y) {
+        function createFloor(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -356,22 +349,22 @@
                 shapeData.normals.push([0.0, 0.0, 1.0]);
             }
 
-            shapeData.positions.push(x, y, 0.0);
+            shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y, 0.0);
+            shapeData.positions.push(x + 1, y, z);
             shapeData.texCoords.push(1.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, 0.0);
+            shapeData.positions.push(x + 1, y + 1, z);
             shapeData.texCoords.push(1.0, 1.0);
 
-            shapeData.positions.push(x, y + 1, 0.0);
+            shapeData.positions.push(x, y + 1, z);
             shapeData.texCoords.push(0.0, 1.0);
 
             return shapeData;
         }
 
-        function createRoof(x, y) {
+        function createRoof(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -381,29 +374,29 @@
                 shapeData.normals.push([0.0, 0.0, -1.0]);
             }
 
-            shapeData.positions.push(x, y, 1.0);
+            shapeData.positions.push(x, y, z+1);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, 1.0);
+            shapeData.positions.push(x + 1, y + 1, z+1);
             shapeData.texCoords.push(1.0, 1.0);
 
-            shapeData.positions.push(x, y + 1, 1.0);
+            shapeData.positions.push(x, y + 1, z+1);
             shapeData.texCoords.push(0.0, 1.0);
 
-            shapeData.positions.push(x + 1, y, 1.0);
+            shapeData.positions.push(x + 1, y, z+1);
             shapeData.texCoords.push(1.0, 0.0);
 
             return shapeData;
         }
 
-        function createCube(gl, x, y) {
+        function createCube(gl, x, y, z) {
             shapes = [];
-            shapes.push(createShape(gl, createNorthWall(x, y)));
-            shapes.push(createShape(gl, createSouthWall(x, y)));
-            shapes.push(createShape(gl, createEastWall(x, y)));
-            shapes.push(createShape(gl, createWestWall(x, y)));
-            shapes.push(createShape(gl, createFloor(x, y)));
-            shapes.push(createShape(gl, createRoof(x, y)));
+            shapes.push(createShape(gl, createNorthWall(x, y, z)));
+            shapes.push(createShape(gl, createSouthWall(x, y, z)));
+            shapes.push(createShape(gl, createEastWall(x, y, z)));
+            shapes.push(createShape(gl, createWestWall(x, y, z)));
+            shapes.push(createShape(gl, createFloor(x, y, z)));
+            shapes.push(createShape(gl, createRoof(x, y, z)));
             return shapes;
         }
 
@@ -598,6 +591,7 @@
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
             program0.xform_viewMat = gl.getUniformLocation(program0, "xform_viewMat");
             program0.xform_modelMat = gl.getUniformLocation(program0, "xform_modelMat");
+            program0.transform_Mat = gl.getUniformLocation(program0, "transform_Mat");
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             var lastTime = performance.now();
@@ -741,7 +735,9 @@
             }
 
             var floors = [];
+            var all_cubes = [];
             var shapes = [];
+            var new_cube = [];
             var counter = 0;
 
             function reset() {
@@ -762,29 +758,90 @@
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
-                floors = [];
-                shapes = [];
-                counter = 0;
-                // for (var x = 0; x < maze.sizeX; x++) {
-                //     for (var y = 0; y < maze.sizeY; y++) {
-                //         floors.push(createShape(gl, createFloor(x, y)));
-                //         if (maze.data[x][y] == 1) {
-                //             // create a wall
-                //             shapes.push(createShape(gl, createNorthWall(x, y)));
-                //             shapes.push(createShape(gl, createSouthWall(x, y)));
-                //             shapes.push(createShape(gl, createEastWall(x, y)));
-                //             shapes.push(createShape(gl, createWestWall(x, y)));
-                //         }
-                //         counter++;
-                //     }
-                // }
-                shapes = createCube(gl, 5, 5);
 
-
+                
+                new_cube = createCube(gl, 5, 5, 5);
             }
             reset();
-            function updateWebGL() {
+            height = 0;
+            var transform_matrix_1 = mat4.create();
+            var transform_matrix_2 = mat4.create();
 
+            function drawCube(mvMatrix) {
+                gl.clearColor(0.3, 0.7, 1.0, 1.0);
+                gl.clearDepth(1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.enable(gl.DEPTH_TEST);
+                all_cubes.forEach(cube => cube.forEach(shape => {
+                    program0.draw(gl, shape, function () {
+                        if (program0.xform_projMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                        }
+                        if (program0.xform_viewMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
+                        }
+                        if (program0.xform_modelMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
+                        }
+                        if (program0.transform_Mat != null) {
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, mat4.create());
+                        }
+                        if (program0.texture != null) {
+                            gl.activeTexture(gl.TEXTURE0);
+                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                            gl.uniform1i(program0.texture, 0);
+                        }
+                    });
+                }));
+                new_cube.forEach(shape => {
+                    program0.draw(gl, shape, function () {
+                        if (program0.xform_projMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                        }
+                        if (program0.xform_viewMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
+                        }
+                        if (program0.xform_modelMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
+                        }
+                        if (program0.transform_Mat != null) {
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, mvMatrix);
+                        }
+                        if (program0.texture != null) {
+                            gl.activeTexture(gl.TEXTURE0);
+                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                            gl.uniform1i(program0.texture, 0);
+                        }
+                    });
+                });
+
+                if (height > -5){
+                    height = height - 0.005;
+                    var translation = vec3.create();
+                    vec3.set (translation, 0, 0, height);
+                    var newtranslation = mat4.fromTranslation(mvMatrix, translation);
+                    drop_matrix = newtranslation;
+                    window.requestAnimationFrame(() => drawCube(newtranslation));
+                }
+            }
+
+            function resetCubeMatrices(){
+                all_cubes.push(new_cube);
+                new_cube = createCube(8, 5, 5);
+            }
+
+            $("#webglCanvas").dblclick(function (event) {
+                resetCubeMatrices();
+                window.requestAnimationFrame(() => drawCube(transform_matrix_2));
+            });
+
+
+            function updateWebGL() {
+                
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
@@ -793,8 +850,6 @@
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
-
-
                 if (control.mode == IS_ROTATING) {
                     var sign;
                     if (control.toHeading > control.fromHeading) {
@@ -816,12 +871,8 @@
                     }
 
                 } else if (control.mode == IS_MOVING) {
-
-                    // console.log(control.toPosition[0]);
                     var movex = 0;
                     var movey = 0;
-                    // var vecx = vec3.fromValues(1.0, 0.0, 0.0);
-                    // var vecy = vec3.fromValues(0.0, 1.0, 0.0);
                     if (control.toPosition[1] > control.fromPosition[1]) {
                         movey = 1;
                     } else if (control.toPosition[1] < control.fromPosition[1]) {
@@ -854,61 +905,9 @@
                             control.mode = NO_CONTROL;
                         }
                     }
-
-                    // vec3.copy(control.currentPosition, control.toPosition);
-                    // control.mode = NO_CONTROL;
-
                 }
+                window.requestAnimationFrame(() => drawCube(transform_matrix_1));
 
-                gl.clearColor(0.3, 0.7, 1.0, 1.0);
-                gl.clearDepth(1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                gl.enable(gl.DEPTH_TEST);
-
-                var shapeCounter = 0;
-
-                floors.forEach(floor => {
-                    program0.draw(gl, floor, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureFloor);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-
-                })
-                shapes.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                    shapeCounter++;
-                })
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
