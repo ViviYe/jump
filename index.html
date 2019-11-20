@@ -33,6 +33,7 @@
         </div>
 
         <table class="table table-bordered">
+
             <tr>
                 <td align="right"><b>Field of view:</b></td>
                 <td>
@@ -42,9 +43,28 @@
             <tr>
                 <td align="right"><b>Eye height:</b></td>
                 <td>
-                    <input type="text" id="eyeHeightSpinner" value="0.5">
+                    <input type="text" id="eyeHeightSpinner" value="1.5">
                 </td>
             </tr>
+            <tr>
+                <td align="right"><b>rot x:</b></td>
+                <td>
+                    <input type="text" id="rotX" value="0.5">
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><b>rot y:</b></td>
+                <td>
+                    <input type="text" id="rotY" value="0.5">
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><b>rot z:</b></td>
+                <td>
+                    <input type="text" id="rotZ" value="0.5">
+                </td>
+            </tr>
+
             <tr>
                 <td align="right"><b>Maze:</b></td>
                 <td>
@@ -59,6 +79,8 @@
                 </td>
             </tr>
         </table>
+
+
 
         <h2>Additional Feature Implemented</h2>
 
@@ -118,9 +140,26 @@
             step: 0.1
         });
         $("#eyeHeightSpinner").spinner({
-            min: 0.1,
-            max: 1.0,
-            step: 0.01
+            min: 1.5,
+            max: 2.5,
+            step: 0.1
+        });
+
+        $('#rotX').spinner({
+            min: -360,
+            max: 360,
+            step: 5
+        });
+
+        $('#rotY').spinner({
+            min: -360,
+            max: 360,
+            step: 5
+        });
+        $('#rotZ').spinner({
+            min: -360,
+            max: 360,
+            step: 5
         });
 
         function getFov() {
@@ -128,102 +167,29 @@
         }
 
         function getEyeHeight() {
-            // return $("#eyeHeightSpinner").spinner("value");
-            return 1.5;
+            return $("#eyeHeightSpinner").spinner("value");
         }
 
-        var xAxis = vec3.fromValues(1, 0, 0);
-        var yAxis = vec3.fromValues(0, 1, 0);
-        var zAxis = vec3.fromValues(0, 0, 1);
+        function getRotX() {
+            return $('#rotX').spinner('value') * Math.PI / 180;
+        }
+        function getRotY() {
+            return $('#rotY').spinner('value') * Math.PI / 180;
+        }
+        function getRotZ() {
+            return $('#rotZ').spinner('value') * Math.PI / 180;
+        }
 
         function getMazeStrings() {
             return $("#mazeTextArea").val().trim().split(/\s/);
         }
         function createMazeFromStrings(strings) {
-            // var sizeY = strings.length;
-            // var sizeX = strings[0].length;
-
-            // var x, y;
-            // for (y = 0; y < sizeY; y++) {
-            //     if (strings[y].length != sizeX) {
-            //         throw new Error("Mesh is not a rectangle!");
-            //     }
-            // }
-
-            // var data = [];
-            // for (x = 0; x < sizeX; x++) {
-            //     var a = [];
-            //     for (y = 0; y < sizeY; y++) {
-            //         a.push(null);
-            //     }
-            //     data.push(a);
-            // }
-
-            // var startPosition = null;
-            // var startHeading = null;
-            // for (x = 0; x < sizeX; x++) {
-            //     for (y = 0; y < sizeY; y++) {
-            //         var c = strings[sizeY - y - 1][x];
-            //         if (c == "#") {
-            //             data[x][y] = 1;
-            //         } else {
-            //             data[x][y] = 0;
-            //         }
-
-            //         if (c == "N" || c == "E" || c == "W" || c == "S") {
-            //             if (startPosition == null) {
-            //                 if (c == "N") {
-            //                     startHeading = Math.PI / 2;
-            //                 } else if (c == "E") {
-            //                     startHeading = 0.0;
-            //                 } else if (c == "W") {
-            //                     startHeading = Math.PI;
-            //                 } else if (c == "S") {
-            //                     startHeading = 3 * Math.PI / 2;
-            //                 }
-            //                 startPosition = [x, y];
-            //             } else {
-            //                 throw new Error("There are more than one starting point!");
-            //             }
-            //         }
-            //     }
-            // }
-
-            // if (startPosition == null) {
-            //     throw new Error("There is no starting point!");
-            // }
-
-            // for (x = 0; x < sizeX; x++) {
-            //     if (data[x][0] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            //     if (data[x][sizeY - 1] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            // }
-            // for (y = 0; y < sizeY; y++) {
-            //     if (data[0][y] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            //     if (data[sizeX - 1][y] != 1) {
-            //         throw new Error("Boundary is not complete!");
-            //     }
-            // }
-
-            // return {
-            //     sizeX: sizeX,
-            //     sizeY: sizeY,
-            //     data: data,
-            //     startHeading: startHeading,
-            //     startPosition: startPosition
-            // };
-
             return {
                 sizeX: 5,
                 sizeY: 5,
                 data: null,
-                startHeading: 0,
-                startPosition: [0, 5]
+                startHeading: 0.6,
+                startPosition: [0, 1]
             }
         }
 
@@ -400,7 +366,6 @@
             return shapes;
         }
 
-
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -419,7 +384,6 @@
                     gl = canvas[0].getContext("webgl");
                 }
             } catch (error) {
-                // NO-OP
             }
             if (!gl) {
                 alert("Could not get WebGL context!");
@@ -467,7 +431,7 @@
             }
         }
 
-        function drawShape(gl, program, shape) {
+        function drawShape(gl, program, shape, xf) {
             gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
             var positionLocation = gl.getAttribLocation(program, "vert_position");
             gl.enableVertexAttribArray(positionLocation);
@@ -523,6 +487,10 @@
 
             images.push(image);
         }
+
+        var xAxis = vec3.fromValues(1, 0, 0);
+        var yAxis = vec3.fromValues(0, 1, 0);
+        var zAxis = vec3.fromValues(0, 0, 1);
 
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
@@ -614,14 +582,17 @@
             function getProjMatrix() {
                 var projMat = mat4.create();
                 mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
+                mat4.rotate(projMat, projMat, getRotX(), xAxis);
+                mat4.rotate(projMat, projMat, getRotY(), yAxis);
+                mat4.rotate(projMat, projMat, getRotZ(), zAxis);
                 return projMat;
             }
 
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
-                    control.currentPosition[0] - 2,
-                    control.currentPosition[1] - 2,
+                    control.currentPosition[0] - 1,
+                    control.currentPosition[1] - 1,
                     getEyeHeight()
                 );
                 var target = vec3.create();
@@ -672,25 +643,22 @@
                         dy = Math.round(Math.sin(control.currentHeading));
                         var targetPos = [currentX + dx, currentY + dy];
 
-                        if (canGo(targetPos)) {
-                            control.mode = IS_MOVING;
-                            control.fromPosition = vec3.fromValues(
-                                currentX + 0.5,
-                                currentY + 0.5,
-                                0.0
-                            );
-                            direction = vec3.fromValues(
-                                dx,
-                                dy,
-                                0.0
-                            );
-                            control.toPosition = vec3.fromValues(
-                                targetPos[0] + 0.5,
-                                targetPos[1] + 0.5,
-                                0.0
-                            )
-                        }
-
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
                     }
                 }
                 else if (event.key == "ArrowDown") {
@@ -700,25 +668,22 @@
                         dx = -Math.round(Math.cos(control.currentHeading));
                         dy = -Math.round(Math.sin(control.currentHeading));
                         var targetPos = [currentX + dx, currentY + dy];
-                        if (canGo(targetPos)) {
-                            control.mode = IS_MOVING;
-                            control.fromPosition = vec3.fromValues(
-                                currentX + 0.5,
-                                currentY + 0.5,
-                                0.0
-                            );
-                            direction = vec3.fromValues(
-                                dx,
-                                dy,
-                                0.0
-                            );
-                            control.toPosition = vec3.fromValues(
-                                targetPos[0] + 0.5,
-                                targetPos[1] + 0.5,
-                                0.0
-                            )
-                        }
-
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
                     }
                 }
             });
@@ -767,7 +732,7 @@
             var transform_matrix_1 = mat4.create();
             var transform_matrix_2 = mat4.create();
 
-            function drawCube(mvMatrix) {
+            function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -784,7 +749,7 @@
                             gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
                         }
                         if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, mat4.create());
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
                         }
                         if (program0.texture != null) {
                             gl.activeTexture(gl.TEXTURE0);
@@ -807,7 +772,7 @@
                             gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
                         }
                         if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, mvMatrix);
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, dropmat);
                         }
                         if (program0.texture != null) {
                             gl.activeTexture(gl.TEXTURE0);
@@ -821,22 +786,30 @@
 
                 if (height > -5){
                     height = height - 0.005;
-                    var translation = vec3.create();
-                    vec3.set (translation, 0, 0, height);
-                    var newtranslation = mat4.fromTranslation(mvMatrix, translation);
-                    drop_matrix = newtranslation;
-                    window.requestAnimationFrame(() => drawCube(newtranslation));
+                    var drop = vec3.create();
+                    var trans = vec3.create();
+                    vec3.set (drop, 0, 0, height);
+                    vec3.set (trans, height / 5, 0, 0);
+                    var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                    var movetranslation = mat4.fromTranslation(mat4.clone(transmat), trans);
+                    transform_matrix_2 = droptranslation;
+                    mat4.multiply(movetranslation, transmat, movetranslation);
+                    transform_matrix_1 = mat4.clone(movetranslation);
+                    window.requestAnimationFrame(() => drawCube(movetranslation, droptranslation));
                 }
             }
 
             function resetCubeMatrices(){
                 all_cubes.push(new_cube);
-                new_cube = createCube(8, 5, 5);
+                var x = createCube(gl, 5, 5, 5);
+                new_cube = x;
+                height = 0;
+                transform_matrix_1 = mat4.clone(transform_matrix_2);
+                transform_matrix_2 = mat4.create();
             }
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
-                window.requestAnimationFrame(() => drawCube(transform_matrix_2));
             });
 
 
@@ -906,7 +879,7 @@
                         }
                     }
                 }
-                window.requestAnimationFrame(() => drawCube(transform_matrix_1));
+                window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
 
                 window.requestAnimationFrame(updateWebGL);
             }
