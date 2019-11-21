@@ -162,8 +162,14 @@
             step: 5
         });
 
+        var oldFov = $("#fovSpinner").spinner("value");
+
         function getFov() {
-            return $("#fovSpinner").spinner("value") * Math.PI / 180.0;
+            if (typeof projDist === 'undefined') {
+                projDist = 0;
+            }
+            oldFov += projDist;
+            return (Math.max(Math.min(oldFov, 80), 40)) * Math.PI / 180.0;
         }
 
         function getEyeHeight() {
@@ -218,10 +224,10 @@
             shapeData.positions.push(x + 1, y + 1, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, z+1);
+            shapeData.positions.push(x + 1, y + 1, z + 1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x, y + 1, z+1);
+            shapeData.positions.push(x, y + 1, z + 1);
             shapeData.texCoords.push(4.0, 4.0);
 
             return shapeData;
@@ -240,10 +246,10 @@
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x, y, z+1);
+            shapeData.positions.push(x, y, z + 1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x + 1, y, z+1);
+            shapeData.positions.push(x + 1, y, z + 1);
             shapeData.texCoords.push(4.0, 4.0);
 
             shapeData.positions.push(x + 1, y, z);
@@ -266,10 +272,10 @@
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(4.0, 0.0);
 
-            shapeData.positions.push(x, y, z+1);
+            shapeData.positions.push(x, y, z + 1);
             shapeData.texCoords.push(4.0, 4.0);
 
-            shapeData.positions.push(x, y + 1, z+1);
+            shapeData.positions.push(x, y + 1, z + 1);
             shapeData.texCoords.push(0.0, 4.0);
 
             shapeData.positions.push(x, y + 1, z);
@@ -292,10 +298,10 @@
             shapeData.positions.push(x + 1, y, z);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y, z+1);
+            shapeData.positions.push(x + 1, y, z + 1);
             shapeData.texCoords.push(0.0, 4.0);
 
-            shapeData.positions.push(x + 1, y + 1, z+1);
+            shapeData.positions.push(x + 1, y + 1, z + 1);
             shapeData.texCoords.push(4.0, 4.0);
 
             shapeData.positions.push(x + 1, y + 1, z);
@@ -340,16 +346,16 @@
                 shapeData.normals.push([0.0, 0.0, -1.0]);
             }
 
-            shapeData.positions.push(x, y, z+1);
+            shapeData.positions.push(x, y, z + 1);
             shapeData.texCoords.push(0.0, 0.0);
 
-            shapeData.positions.push(x + 1, y + 1, z+1);
+            shapeData.positions.push(x + 1, y + 1, z + 1);
             shapeData.texCoords.push(1.0, 1.0);
 
-            shapeData.positions.push(x, y + 1, z+1);
+            shapeData.positions.push(x, y + 1, z + 1);
             shapeData.texCoords.push(0.0, 1.0);
 
-            shapeData.positions.push(x + 1, y, z+1);
+            shapeData.positions.push(x + 1, y, z + 1);
             shapeData.texCoords.push(1.0, 0.0);
 
             return shapeData;
@@ -526,6 +532,9 @@
             return texture;
         }
 
+        var program0; var projDist;
+
+
 
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
@@ -554,7 +563,7 @@
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
             var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
-            var program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
+            program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
             program0.xform_viewMat = gl.getUniformLocation(program0, "xform_viewMat");
@@ -579,9 +588,10 @@
                 gl.useProgram(null);
             };
 
-            function getProjMatrix() {
+            function getProjMatrix(projDist) {
                 var projMat = mat4.create();
-                mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
+                const totaldist = getFov();
+                mat4.perspective(projMat, totaldist, 4.0 / 3.0, 0.1, 100.0);
                 mat4.rotate(projMat, projMat, getRotX(), xAxis);
                 mat4.rotate(projMat, projMat, getRotY(), yAxis);
                 mat4.rotate(projMat, projMat, getRotZ(), zAxis);
@@ -614,6 +624,17 @@
                 mat4.identity(modelMat);
                 return modelMat;
             }
+
+            $("#webglCanvas").bind('mousewheel', function (e) {
+                projDist = e.originalEvent.wheelDelta;
+                // gl.useProgram(program0);
+                // // gl.uniform1f(gl.getUniformLocation(program, "projDist"), projDist);
+                // gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist))
+                // // fixes the page
+                return false;
+            });
+
+
 
             $("#webglCanvas").keydown(function (event) {
                 var currentMultiple;
@@ -686,6 +707,7 @@
                         )
                     }
                 }
+                return false;
             });
 
             function canGo(targetPos) {
@@ -724,7 +746,7 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-                
+
                 new_cube = createCube(gl, 5, 5, 5);
             }
             reset();
@@ -740,7 +762,7 @@
                 all_cubes.forEach(cube => cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist));
                         }
                         if (program0.xform_viewMat != null) {
                             gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
@@ -763,7 +785,7 @@
                 new_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist));
                         }
                         if (program0.xform_viewMat != null) {
                             gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
@@ -784,12 +806,12 @@
                     });
                 });
 
-                if (height > -5){
+                if (height > -5) {
                     height = height - 0.005;
                     var drop = vec3.create();
                     var trans = vec3.create();
-                    vec3.set (drop, 0, 0, height);
-                    vec3.set (trans, height / 5, 0, 0);
+                    vec3.set(drop, 0, 0, height);
+                    vec3.set(trans, height / 5, 0, 0);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     var movetranslation = mat4.fromTranslation(mat4.clone(transmat), trans);
                     transform_matrix_2 = droptranslation;
@@ -799,7 +821,7 @@
                 }
             }
 
-            function resetCubeMatrices(){
+            function resetCubeMatrices() {
                 all_cubes.push(new_cube);
                 var x = createCube(gl, 5, 5, 5);
                 new_cube = x;
@@ -814,7 +836,9 @@
 
 
             function updateWebGL() {
-                
+
+
+
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
