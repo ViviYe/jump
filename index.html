@@ -33,13 +33,6 @@
         </div>
 
         <table class="table table-bordered">
-
-            <tr>
-                <td align="right"><b>Field of view:</b></td>
-                <td>
-                    <input type="text" id="fovSpinner" value="45.0">
-                </td>
-            </tr>
             <tr>
                 <td align="right"><b>Eye height:</b></td>
                 <td>
@@ -134,11 +127,6 @@
 
 
     <script>
-        $("#fovSpinner").spinner({
-            min: 10.0,
-            max: 80.0,
-            step: 0.1
-        });
         $("#eyeHeightSpinner").spinner({
             min: 1.5,
             max: 2.5,
@@ -162,18 +150,17 @@
             step: 5
         });
 
-        var oldFov = $("#fovSpinner").spinner("value");
-
         function getFov() {
             if (typeof projDist === 'undefined') {
                 projDist = 0;
             }
             oldFov += projDist;
-            return (Math.max(Math.min(oldFov, 80), 40)) * Math.PI / 180.0;
+            oldFov = Math.max(Math.min(oldFov, 80), 40);
+            return oldFov * Math.PI / 180.0;
         }
 
         function getEyeHeight() {
-            return $("#eyeHeightSpinner").spinner("value");
+            return $("#eyeHeightSpinner").val();
         }
 
         function getRotX() {
@@ -511,7 +498,7 @@
             loadImage("data/patrick-star.png");
             queue.on("complete", function (event) {
 
-                runWebGL(queue)
+                runWebGL(queue);
             });
         }
 
@@ -533,7 +520,7 @@
         }
 
         var program0; var projDist;
-
+        var oldFov = 45;
 
 
         function runWebGL(queue) {
