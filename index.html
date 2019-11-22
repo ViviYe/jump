@@ -159,6 +159,7 @@
             }
             oldFov = Math.max(Math.min(oldFov, 80), 40);
             isScroll = false;
+            const fov = oldFov * Math.PI / 180.0;
             return oldFov * Math.PI / 180.0;
         }
 
@@ -602,8 +603,8 @@
 
             function getViewMatrix() {
                 if (shapeMoved) {
-                    control.currentHeading += thetaShift / 80;
-                    control.zHeading -= phiShift / 80;
+                    control.currentHeading += (thetaShift / 80) * (getFov() / 1.5);
+                    control.zHeading -= (phiShift / 80) * (getFov() / 1.5);
                 }
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
