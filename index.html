@@ -99,7 +99,6 @@
        attribute vec2 vert_texCoord;
        varying vec2 geom_texCoord;
 
-        // TODO: Add P, V, M matrices
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
@@ -157,7 +156,6 @@
             }
             if (isScroll) {
                 oldFov += projDist / 100;
-
             }
             oldFov = Math.max(Math.min(oldFov, 80), 40);
             isScroll = false;
@@ -524,9 +522,16 @@
             return texture;
         }
 
-        var program0; var projDist;
+        var program0; var projDist = 200;
         var oldFov = 45;
         var isScroll = false;
+        var shapeMoved = false;
+        var thetaPos = 0;
+        var phiPos = 0;
+        var thetaShift = 0;
+        var phiShift = 0;
+        var curTheta = 0;
+        var curPhi = 0;
 
 
         function runWebGL(queue) {
@@ -551,6 +556,23 @@
             control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                 startPos[1] * 1.0 + 0.5,
                 0.0);
+
+            var mouse = {
+                mouseDown: false,
+                mouseDragged: false,
+            }
+            var webglCanvas = $("#webglCanvas");
+
+            var prevMouseDown = false;
+            var clientRect = webglCanvas[0].getBoundingClientRect();
+            var moveShape = false;
+            var initShapePos = [0, 0];
+
+            var disp_x = 0.0;
+            var disp_y = 0.0;
+            var viewDir = [0, 0, -1];
+            var viewUp = [0, 1, 0];
+
 
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
@@ -591,6 +613,10 @@
             }
 
             function getViewMatrix() {
+                if (shapeMoved) {
+                    control.currentHeading += thetaShift / 80;
+                    control.zHeading -= phiShift / 80;
+                }
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
                     control.currentPosition[0] - 1,
@@ -601,13 +627,14 @@
                 var currentDirection = vec3.fromValues(
                     Math.cos(control.currentHeading),
                     Math.sin(control.currentHeading),
-                    0.0
+                    control.zHeading
                 );
                 vec3.add(target, eye, currentDirection);
                 mat4.lookAt(viewMat,
                     eye,
-                    target,
-                    vec3.fromValues(0.0, 0.0, 1.0));
+                    target, // viewDir
+                    vec3.fromValues(0.0, 0.0, 1.0)); // viewUp
+                shapeMoved = false;
                 return viewMat;
             }
 
@@ -617,7 +644,7 @@
                 return modelMat;
             }
 
-            $("#webglCanvas").bind('mousewheel', function (e) {
+            webglCanvas.bind('mousewheel', function (e) {
                 isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
                 // gl.useProgram(program0);
@@ -629,7 +656,71 @@
 
 
 
-            $("#webglCanvas").keydown(function (event) {
+            webglCanvas.bind('mousemove', function (e) {
+                if (mouse.mouseDown) {
+                    mouse.mouseDragged = true;
+                    var x = 2.0 * ((event.clientX - clientRect.left) * 1.0 / clientRect.width) - 1.0;
+                    var y = 2.0 * (1.0 - (event.clientY - clientRect.top) * 1.0 / clientRect.height) - 1.0;
+                    // Check if dragging inside rectangle
+                    // If so, move it according to mouse movement
+                    if (!prevMouseDown) {
+                        moveShape = true;
+                        initShapePos[0] = x;
+                        initShapePos[1] = y;
+                    }
+                    else if (moveShape) {
+                        disp_x = x - initShapePos[0];
+                        disp_y = y - initShapePos[1];
+                        gl.useProgram(program0);
+                        thetaShift = Math.atan(((disp_x) * clientRect.width) / (projDist * 2.0));
+                        phiShift = Math.atan(((disp_y) * clientRect.height) / (projDist * 2.0));
+                        thetaPos = thetaShift + curTheta;
+                        phiPos = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
+                        phiPos = phiPos < -1.57 ? -1.57 : phiPos;
+                        viewDir = [
+                            Math.sin(-1 * thetaPos) * Math.cos(-1 * phiPos),
+                            Math.sin(-1 * phiPos),
+                            -Math.cos(-1 * thetaPos) * Math.cos(-1 * phiPos)]
+                        viewUp = [
+                            -Math.sin(-1 * (thetaPos + 3.14)) * Math.cos(-1 * (phiPos - 1.57)),
+                            -Math.sin(-1 * (1.57 + phiPos)),
+                            Math.cos(-1 * (thetaPos + 3.14)) * Math.cos(-1 * (phiPos - 1.57))
+                        ];
+                        // console.log("phiPOs: " + phiPos)
+                        // console.log("viewdir: " + viewDir);
+                        // console.log("viewup: " + viewUp);
+                        shapeMoved = true;
+                        gl.uniform3fv(gl.getUniformLocation(program0, "viewUp"), viewUp);;
+                        gl.uniform3fv(gl.getUniformLocation(program0, "viewDir"), viewDir);;
+                    }
+                    prevMouseDown = true;
+                }
+            });
+
+            webglCanvas.mousedown(function (event) {
+                if (event.button == 0) {
+                    mouse.mouseDown = true;
+                    mouse.mouseDragged = false;
+                }
+            })
+
+            $(document).mouseup(function (event) {
+                if (event.button == 0) {
+                    mouse.mouseDown = false;
+                    mouse.mouseDragged = false;
+                    prevMouseDown = false;
+                    if (moveShape) {
+                        moveShape = false;
+                        curTheta += thetaShift;
+                        curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
+                        curPhi = curPhi < -1.57 ? -1.57 : curPhi;
+                    }
+
+                }
+            });
+
+
+            webglCanvas.keydown(function (event) {
                 var currentMultiple;
                 var currentX, currentY;
                 var dx, dy;
@@ -727,6 +818,7 @@
                     moveRate: 0.005,
                     displacement: null,
                     currentHeading: maze.startHeading,
+                    zHeading: 0,
                     fromHeading: null,
                     toHeading: null,
                     currentPosition: null,
