@@ -155,8 +155,12 @@
             if (typeof projDist === 'undefined') {
                 projDist = 0;
             }
-            oldFov += projDist / 100;
+            if (isScroll) {
+                oldFov += projDist / 100;
+
+            }
             oldFov = Math.max(Math.min(oldFov, 80), 40);
+            isScroll = false;
             return oldFov * Math.PI / 180.0;
         }
 
@@ -522,6 +526,7 @@
 
         var program0; var projDist;
         var oldFov = 45;
+        var isScroll = false;
 
 
         function runWebGL(queue) {
@@ -576,10 +581,9 @@
                 gl.useProgram(null);
             };
 
-            function getProjMatrix(projDist) {
+            function getProjMatrix() {
                 var projMat = mat4.create();
-                const totaldist = getFov();
-                mat4.perspective(projMat, totaldist, 4.0 / 3.0, 0.1, 100.0);
+                mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
                 mat4.rotate(projMat, projMat, getRotX(), xAxis);
                 mat4.rotate(projMat, projMat, getRotY(), yAxis);
                 mat4.rotate(projMat, projMat, getRotZ(), zAxis);
@@ -614,6 +618,7 @@
             }
 
             $("#webglCanvas").bind('mousewheel', function (e) {
+                isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
                 // gl.useProgram(program0);
                 // // gl.uniform1f(gl.getUniformLocation(program, "projDist"), projDist);
@@ -750,7 +755,7 @@
                 last_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist));
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
                         }
                         if (program0.xform_viewMat != null) {
                             gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
@@ -773,7 +778,7 @@
                 new_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist));
+                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
                         }
                         if (program0.xform_viewMat != null) {
                             gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
@@ -809,7 +814,7 @@
                 }
             }
 
-            function resetCubeMatrices(){
+            function resetCubeMatrices() {
                 last_cube = new_cube;
                 var x = createCube(gl, 5, 5, 5);
                 new_cube = x;
