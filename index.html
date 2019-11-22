@@ -476,13 +476,6 @@
 
 
         var images = [];
-        function loadImage(url) {
-            var image = new Image();
-            image.src = url;
-            image.crossOrigin = "anonymous";
-
-            images.push(image);
-        }
 
         var xAxis = vec3.fromValues(1, 0, 0);
         var yAxis = vec3.fromValues(0, 1, 0);
@@ -495,12 +488,7 @@
             queue.loadManifest(["data/floor.jpg", { id: "floor", src: "data/floor.jpg" }]);
             queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
             queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
-            loadImage("data/floor.jpg");
-            loadImage("data/wall.jpg");
-            loadImage("data/sponge-bob.png");
-            loadImage("data/patrick-star.png");
             queue.on("complete", function (event) {
-
                 runWebGL(queue);
             });
         }
