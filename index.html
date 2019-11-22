@@ -561,6 +561,54 @@
             var viewDir = [0, 0, -1];
             var viewUp = [0, 1, 0];
 
+            var friction = 0.80;
+            var stopThreshold = 0.0001;
+
+            var trackingPoints = [];
+            var decelerating = false;
+
+            function decelerateStep(decelTheta, decelPhi) {
+                if (!decelerating) {
+                    return;
+                }
+                decelTheta *= friction;
+                decelPhi *= friction;
+                thetaShift += decelTheta;
+                phiShift += decelPhi;
+                control.currentHeading += thetaShift / 80;
+                control.zHeading -= phiShift / 80;
+                curTheta += thetaShift;
+                curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
+                curPhi = curPhi < -1.57 ? -1.57 : curPhi;
+                if (Math.abs(decelTheta) > stopThreshold || Math.abs(decelPhi) > stopThreshold) {
+                    window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
+                } else {
+                    decelerating = false;
+                }
+
+            }
+
+            function decelerate() {
+                var firstPoint = trackingPoints[0];
+                var lastPoint = trackingPoints[trackingPoints.length - 1];
+
+                var thetaOffset = lastPoint.theta - firstPoint.theta;
+                var phiOffset = lastPoint.phi - firstPoint.phi;
+                var timeOffset = lastPoint.time - firstPoint.time;
+
+                var D = (timeOffset / 15);
+
+                var decelTheta = (thetaOffset / D) || 0; // prevent NaN
+                var decelPhi = (phiOffset / D) || 0;
+                decelerating = true;
+                control.currentHeading += thetaShift / 80;
+                control.zHeading -= phiShift / 80;
+
+                thetaShift = 0.0;
+                phiShift = 0.0;
+                window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
+                trackingPoints = [];
+            }
 
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
@@ -600,11 +648,16 @@
                 return projMat;
             }
 
+            function addTrackingPoint(theta, phi) {
+                var time = Date.now();
+                trackingPoints.push({ theta, phi, time });
+            }
+
             function getViewMatrix() {
-                if (shapeMoved) {
-                    control.currentHeading += thetaShift / 80;
-                    control.zHeading -= phiShift / 80;
-                }
+                // if (shapeMoved) {
+                //     control.currentHeading += thetaShift / 80;
+                //     control.zHeading -= phiShift / 80;
+                // }
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
                     control.currentPosition[0] - 1,
@@ -674,6 +727,9 @@
                             -Math.sin(-1 * (1.57 + phiPos)),
                             Math.cos(-1 * (thetaPos + 3.14)) * Math.cos(-1 * (phiPos - 1.57))
                         ];
+                        addTrackingPoint(thetaPos, phiPos);
+                        control.currentHeading += thetaShift / 70;
+                        control.zHeading -= phiShift / 70;
                         // console.log("phiPOs: " + phiPos)
                         // console.log("viewdir: " + viewDir);
                         // console.log("viewup: " + viewUp);
@@ -700,8 +756,13 @@
                     if (moveShape) {
                         moveShape = false;
                         curTheta += thetaShift;
+                        
+                        control.currentHeading += thetaShift / 70;
+                        control.zHeading -= phiShift / 70;
                         curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
                         curPhi = curPhi < -1.57 ? -1.57 : curPhi;
+                        addTrackingPoint(curTheta, curPhi);
+                        window.requestAnimationFrame(()=> decelerate());
                     }
 
                 }
@@ -794,7 +855,7 @@
             }
 
             var floors = [];
-            var last_cube = [];
+            var all_cubes = [];
             var shapes = [];
             var new_cube = [];
             var counter = 0;
@@ -824,6 +885,7 @@
             }
             reset();
             height = 0;
+            
             var transform_matrix_1 = mat4.create();
             var transform_matrix_2 = mat4.create();
 
@@ -832,7 +894,7 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                last_cube.forEach(shape => {
+                all_cubes.forEach(cube => cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
                             gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
@@ -854,7 +916,7 @@
                             gl.uniform1i(program0.texture, 0);
                         }
                     });
-                });
+                }));
                 new_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
@@ -886,17 +948,18 @@
                     vec3.set(drop, 0, 0, height);
                     vec3.set(trans, height / 5, 0, 0);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
-                    var movetranslation = mat4.fromTranslation(mat4.clone(transmat), trans);
+                    // var movetranslation = mat4.fromTranslation(mat4.clone(transmat), trans);
                     transform_matrix_2 = droptranslation;
-                    mat4.multiply(movetranslation, transmat, movetranslation);
-                    transform_matrix_1 = mat4.clone(movetranslation);
-                    window.requestAnimationFrame(() => drawCube(movetranslation, droptranslation));
+                    // mat4.multiply(movetranslation, transmat, movetranslation);
+                    // transform_matrix_1 = mat4.clone(movetranslation);
+                    window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
                 }
             }
-
+            var distance = 5;
             function resetCubeMatrices() {
-                last_cube = new_cube;
-                var x = createCube(gl, 5, 5, 5);
+                all_cubes.push(new_cube);
+                distance += 3;
+                var x = createCube(gl, distance, 5, 5);
                 new_cube = x;
                 height = 0;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
