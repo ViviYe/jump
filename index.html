@@ -154,7 +154,7 @@
             if (typeof projDist === 'undefined') {
                 projDist = 0;
             }
-            oldFov += projDist;
+            oldFov += projDist / 100;
             oldFov = Math.max(Math.min(oldFov, 80), 40);
             return oldFov * Math.PI / 180.0;
         }
