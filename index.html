@@ -130,6 +130,7 @@
             vec4 c = texture2D(texture, geom_texCoord);
             gl_FragColor = c;
         }
+
     </script>
 
 
@@ -700,7 +701,7 @@
             }
 
             var floors = [];
-            var all_cubes = [];
+            var last_cube = [];
             var shapes = [];
             var new_cube = [];
             var counter = 0;
@@ -737,7 +738,7 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cube => cube.forEach(shape => {
+                last_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
                             gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
@@ -759,7 +760,7 @@
                             gl.uniform1i(program0.texture, 0);
                         }
                     });
-                }));
+                });
                 new_cube.forEach(shape => {
                     program0.draw(gl, shape, function () {
                         if (program0.xform_projMat != null) {
@@ -800,7 +801,7 @@
             }
 
             function resetCubeMatrices(){
-                all_cubes.push(new_cube);
+                last_cube = new_cube;
                 var x = createCube(gl, 5, 5, 5);
                 new_cube = x;
                 height = 0;
