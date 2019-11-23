@@ -159,6 +159,7 @@
             }
             oldFov = Math.max(Math.min(oldFov, 80), 40);
             isScroll = false;
+            const fov = oldFov * Math.PI / 180.0;
             return oldFov * Math.PI / 180.0;
         }
 
@@ -743,13 +744,13 @@
                     if (moveShape) {
                         moveShape = false;
                         curTheta += thetaShift;
-                        
+
                         control.currentHeading += thetaShift / 70;
                         control.zHeading -= phiShift / 70;
                         curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
                         curPhi = curPhi < -1.57 ? -1.57 : curPhi;
                         addTrackingPoint(curTheta, curPhi);
-                        window.requestAnimationFrame(()=> decelerate());
+                        window.requestAnimationFrame(() => decelerate());
                     }
 
                 }
@@ -872,7 +873,7 @@
             }
             reset();
             height = 0;
-            
+
             var transform_matrix_1 = mat4.create();
             var transform_matrix_2 = mat4.create();
 
