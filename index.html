@@ -209,16 +209,16 @@
             }
 
             shapeData.positions.push(x, y + 1, z);
-            shapeData.texCoords.push(4.0, 0.0);
+            shapeData.texCoords.push(1.0, 0.0);
 
             shapeData.positions.push(x + 1, y + 1, z);
             shapeData.texCoords.push(0.0, 0.0);
 
             shapeData.positions.push(x + 1, y + 1, z + 1);
-            shapeData.texCoords.push(0.0, 4.0);
+            shapeData.texCoords.push(0.0, 1.0);
 
             shapeData.positions.push(x, y + 1, z + 1);
-            shapeData.texCoords.push(4.0, 4.0);
+            shapeData.texCoords.push(1.0, 1.0);
 
             return shapeData;
         }
@@ -237,13 +237,13 @@
             shapeData.texCoords.push(0.0, 0.0);
 
             shapeData.positions.push(x, y, z + 1);
-            shapeData.texCoords.push(0.0, 4.0);
+            shapeData.texCoords.push(0.0, 1.0);
 
             shapeData.positions.push(x + 1, y, z + 1);
-            shapeData.texCoords.push(4.0, 4.0);
+            shapeData.texCoords.push(1.0, 1.0);
 
             shapeData.positions.push(x + 1, y, z);
-            shapeData.texCoords.push(4.0, 0.0);
+            shapeData.texCoords.push(1.0, 0.0);
 
             return shapeData;
         }
@@ -260,13 +260,13 @@
             }
 
             shapeData.positions.push(x, y, z);
-            shapeData.texCoords.push(4.0, 0.0);
+            shapeData.texCoords.push(1.0, 0.0);
 
             shapeData.positions.push(x, y, z + 1);
-            shapeData.texCoords.push(4.0, 4.0);
+            shapeData.texCoords.push(1.0, 1.0);
 
             shapeData.positions.push(x, y + 1, z + 1);
-            shapeData.texCoords.push(0.0, 4.0);
+            shapeData.texCoords.push(0.0, 1.0);
 
             shapeData.positions.push(x, y + 1, z);
             shapeData.texCoords.push(0.0, 0.0);
@@ -289,13 +289,13 @@
             shapeData.texCoords.push(0.0, 0.0);
 
             shapeData.positions.push(x + 1, y, z + 1);
-            shapeData.texCoords.push(0.0, 4.0);
+            shapeData.texCoords.push(0.0, 1.0);
 
             shapeData.positions.push(x + 1, y + 1, z + 1);
-            shapeData.texCoords.push(4.0, 4.0);
+            shapeData.texCoords.push(1.0, 1.0);
 
             shapeData.positions.push(x + 1, y + 1, z);
-            shapeData.texCoords.push(4.0, 0.0);
+            shapeData.texCoords.push(1.0, 0.0);
 
             return shapeData;
         }
@@ -474,9 +474,6 @@
             return shape;
         }
 
-
-        var images = [];
-
         var xAxis = vec3.fromValues(1, 0, 0);
         var yAxis = vec3.fromValues(0, 1, 0);
         var zAxis = vec3.fromValues(0, 0, 1);
@@ -484,7 +481,7 @@
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
 
-            queue.loadManifest(["data/wall.jpg", { id: "wall", src: "data/wall.jpg" }]);
+            queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
             queue.loadManifest(["data/floor.jpg", { id: "floor", src: "data/floor.jpg" }]);
             queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
             queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
@@ -654,10 +651,6 @@
             }
 
             function getViewMatrix() {
-                // if (shapeMoved) {
-                //     control.currentHeading += thetaShift / 80;
-                //     control.zHeading -= phiShift / 80;
-                // }
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
                     control.currentPosition[0] - 1,
@@ -688,14 +681,8 @@
             webglCanvas.bind('mousewheel', function (e) {
                 isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
-                // gl.useProgram(program0);
-                // // gl.uniform1f(gl.getUniformLocation(program, "projDist"), projDist);
-                // gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix(projDist))
-                // // fixes the page
                 return false;
             });
-
-
 
             webglCanvas.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
@@ -911,8 +898,10 @@
                         if (program0.texture != null) {
                             gl.activeTexture(gl.TEXTURE0);
                             gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                             gl.uniform1i(program0.texture, 0);
                         }
                     });
@@ -934,8 +923,10 @@
                         if (program0.texture != null) {
                             gl.activeTexture(gl.TEXTURE0);
                             gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                             gl.uniform1i(program0.texture, 0);
                         }
                     });
@@ -944,14 +935,9 @@
                 if (height > -5) {
                     height = height - 0.005;
                     var drop = vec3.create();
-                    var trans = vec3.create();
                     vec3.set(drop, 0, 0, height);
-                    vec3.set(trans, height / 5, 0, 0);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
-                    // var movetranslation = mat4.fromTranslation(mat4.clone(transmat), trans);
                     transform_matrix_2 = droptranslation;
-                    // mat4.multiply(movetranslation, transmat, movetranslation);
-                    // transform_matrix_1 = mat4.clone(movetranslation);
                     window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
                 }
             }
@@ -959,8 +945,7 @@
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
                 distance += 3;
-                var x = createCube(gl, distance, 5, 5);
-                new_cube = x;
+                new_cube = createCube(gl, distance, 5, 5);
                 height = 0;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
@@ -972,9 +957,6 @@
 
 
             function updateWebGL() {
-
-
-
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
