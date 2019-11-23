@@ -260,10 +260,10 @@
             shapeData.texCoords.push(1.0, 1.0);
 
             shapeData.positions.push(x, y + 1, z + 1);
-            shapeData.texCoords.push(0.0, 1.0);
+            shapeData.texCoords.push(1.0, 0.0);
 
             shapeData.positions.push(x + 1, y, z + 1);
-            shapeData.texCoords.push(1.0, 0.0);
+            shapeData.texCoords.push(0.0, 1.0);
 
             return shapeData;
         }
@@ -342,23 +342,6 @@
             } else {
                 return program;
             }
-        }
-
-        function drawShape(gl, program, shape, xf) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
-            var positionLocation = gl.getAttribLocation(program, "vert_position");
-            gl.enableVertexAttribArray(positionLocation);
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 4 * 5, 0);
-            var texCoordLocation = gl.getAttribLocation(program, "vert_texCoord");
-            gl.enableVertexAttribArray(texCoordLocation);
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 4 * 5, 4 * 3);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
-            gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-            gl.useProgram(null);
         }
 
         function createShape(gl, shapeData) {
@@ -515,8 +498,8 @@
                 var decelTheta = (thetaOffset / D) || 0; // prevent NaN
                 var decelPhi = (phiOffset / D) || 0;
                 decelerating = true;
-                control.currentHeading += thetaShift / 80;
-                control.zHeading -= phiShift / 80;
+                control.currentHeading += thetaShift / 80 * (getFov() / 2);
+                control.zHeading -= phiShift / 80 * (getFov() / 2);
 
                 thetaShift = 0.0;
                 phiShift = 0.0;
@@ -559,11 +542,6 @@
                 return projMat;
             }
 
-            function addTrackingPoint(theta, phi) {
-                var time = Date.now();
-                trackingPoints.push({ theta, phi, time });
-            }
-
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
@@ -590,6 +568,11 @@
                 var modelMat = mat4.create();
                 mat4.identity(modelMat);
                 return modelMat;
+            }
+
+            function addTrackingPoint(theta, phi) {
+                var time = Date.now();
+                trackingPoints.push({ theta, phi, time });
             }
 
             webglCanvas.bind('mousewheel', function (e) {
@@ -629,11 +612,8 @@
                             Math.cos(-1 * (thetaPos + 3.14)) * Math.cos(-1 * (phiPos - 1.57))
                         ];
                         addTrackingPoint(thetaPos, phiPos);
-                        control.currentHeading += thetaShift / 70;
-                        control.zHeading -= phiShift / 70;
-                        // console.log("phiPOs: " + phiPos)
-                        // console.log("viewdir: " + viewDir);
-                        // console.log("viewup: " + viewUp);
+                        control.currentHeading += thetaShift / 45  * (getFov() / 2);
+                        control.zHeading -= phiShift / 45  * (getFov() / 2);
                         shapeMoved = true;
                         gl.uniform3fv(gl.getUniformLocation(program0, "viewUp"), viewUp);;
                         gl.uniform3fv(gl.getUniformLocation(program0, "viewDir"), viewDir);;
@@ -657,9 +637,6 @@
                     if (moveShape) {
                         moveShape = false;
                         curTheta += thetaShift;
-
-                        control.currentHeading += thetaShift / 70;
-                        control.zHeading -= phiShift / 70;
                         curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
                         curPhi = curPhi < -1.57 ? -1.57 : curPhi;
                         addTrackingPoint(curTheta, curPhi);
@@ -691,7 +668,6 @@
                     }
                 } else if (event.key == "ArrowUp") {
                     if (control.mode == NO_CONTROL) {
-
                         currentX = Math.round(control.currentPosition[0] - 0.5);
                         currentY = Math.round(control.currentPosition[1] - 0.5);
                         dx = Math.round(Math.cos(control.currentHeading));
@@ -745,21 +721,11 @@
             });
 
             function canGo(targetPos) {
-                // if (targetPos[0] < 0
-                //     || targetPos[0] >= maze.data.length
-                //     || targetPos[1] < 0
-                //     || targetPos[1] >= maze.data[0].length
-                //     || maze.data[targetPos[0]][targetPos[1]] == 1) {
-                //     return false;
-                // }
                 return true;
             }
 
-            var floors = [];
             var all_cubes = [];
-            var shapes = [];
             var new_cube = [];
-            var counter = 0;
 
             function reset() {
                 control = {
@@ -781,11 +747,10 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-
                 new_cube = createCube(gl, 5, 5, 5);
             }
             reset();
-            height = 0;
+            var height = 0;
 
             var transform_matrix_1 = mat4.create();
             var transform_matrix_2 = mat4.create();
@@ -867,6 +832,29 @@
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
+                currentX = Math.round(control.currentPosition[0] - 0.5);
+                currentY = Math.round(control.currentPosition[1] - 0.5);
+                dx = Math.round(Math.cos(0));
+                dy = Math.round(Math.sin(0));
+
+                var targetPos = [currentX + dx + 1.5, currentY + dy];
+                if (canGo(targetPos)) {
+                    control.mode = IS_MOVING;
+                    control.fromPosition = vec3.fromValues(
+                        currentX + 0.5,
+                        currentY + 0.5,
+                        0.0
+                    );
+                    direction = vec3.fromValues(
+                        dx,
+                        dy,
+                        0.0
+                    );
+                    control.toPosition = vec3.fromValues(
+                        targetPos[0] + 0.5,
+                        targetPos[1] + 0.5,
+                        0.0
+                    )}
             });
 
 
