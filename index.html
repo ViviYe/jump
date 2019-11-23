@@ -36,7 +36,7 @@
             <tr>
                 <td align="right"><b>Eye height:</b></td>
                 <td>
-                    <input type="text" id="eyeHeightSpinner" value="1.5">
+                    <input type="text" id="eyeHeightSpinner" value="5">
                 </td>
             </tr>
             <tr>
@@ -157,7 +157,7 @@
             if (isScroll) {
                 oldFov += projDist / 100;
             }
-            oldFov = Math.max(Math.min(oldFov, 80), 40);
+            oldFov = Math.max(Math.min(oldFov, 60), 30);
             isScroll = false;
             const fov = oldFov * Math.PI / 180.0;
             return oldFov * Math.PI / 180.0;
@@ -573,8 +573,8 @@
                 decelPhi *= friction;
                 thetaShift += decelTheta;
                 phiShift += decelPhi;
-                control.currentHeading += thetaShift / 80;
-                control.zHeading -= phiShift / 80;
+                control.currentHeading += (thetaShift / 80) * (getFov() / 2);
+                control.zHeading -= (phiShift / 80) * (getFov() / 2);
                 curTheta += thetaShift;
                 curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
                 curPhi = curPhi < -1.57 ? -1.57 : curPhi;
@@ -855,7 +855,7 @@
                     moveRate: 0.005,
                     displacement: null,
                     currentHeading: maze.startHeading,
-                    zHeading: 0,
+                    zHeading: -0.4,
                     fromHeading: null,
                     toHeading: null,
                     currentPosition: null,
