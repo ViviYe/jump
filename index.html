@@ -32,60 +32,6 @@
                 height="600"></canvas>
         </div>
 
-        <table class="table table-bordered">
-            <tr>
-                <td align="right"><b>Eye height:</b></td>
-                <td>
-                    <input type="text" id="eyeHeightSpinner" value="5">
-                </td>
-            </tr>
-            <tr>
-                <td align="right"><b>rot x:</b></td>
-                <td>
-                    <input type="text" id="rotX" value="0.5">
-                </td>
-            </tr>
-            <tr>
-                <td align="right"><b>rot y:</b></td>
-                <td>
-                    <input type="text" id="rotY" value="0.5">
-                </td>
-            </tr>
-            <tr>
-                <td align="right"><b>rot z:</b></td>
-                <td>
-                    <input type="text" id="rotZ" value="0.5">
-                </td>
-            </tr>
-
-            <tr>
-                <td align="right"><b>Maze:</b></td>
-                <td>
-                    <textarea style="font-family: monospace" id="mazeTextArea" cols="25" rows="10">#####
-#...#
-#.#.#
-#N..#
-#####
-</textarea>
-                    <br>
-                    <button id="updateMazeButton">Update Maze</button>
-                </td>
-            </tr>
-        </table>
-
-
-
-        <h2>Additional Feature Implemented</h2>
-
-        <p>Please indicate here the additional feature that you implemented.</p>
-
-        <h2>Team Members</h2>
-
-        <ul>
-            <li>Olivia Li (yl2795)</li>
-            <li>Alanna Zhou (asz33)</li>
-            <li>Vivi Ye (yy453)</li>
-        </ul>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -133,23 +79,6 @@
             step: 0.1
         });
 
-        $('#rotX').spinner({
-            min: -360,
-            max: 360,
-            step: 5
-        });
-
-        $('#rotY').spinner({
-            min: -360,
-            max: 360,
-            step: 5
-        });
-        $('#rotZ').spinner({
-            min: -360,
-            max: 360,
-            step: 5
-        });
-
         function getFov() {
             if (typeof projDist === 'undefined') {
                 projDist = 0;
@@ -164,23 +93,10 @@
         }
 
         function getEyeHeight() {
-            return $("#eyeHeightSpinner").val();
+            return 5;
         }
 
-        function getRotX() {
-            return $('#rotX').spinner('value') * Math.PI / 180;
-        }
-        function getRotY() {
-            return $('#rotY').spinner('value') * Math.PI / 180;
-        }
-        function getRotZ() {
-            return $('#rotZ').spinner('value') * Math.PI / 180;
-        }
-
-        function getMazeStrings() {
-            return $("#mazeTextArea").val().trim().split(/\s/);
-        }
-        function createMazeFromStrings(strings) {
+        function getInitWorld() {
             return {
                 sizeX: 5,
                 sizeY: 5,
@@ -366,7 +282,7 @@
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
-            maze = createMazeFromStrings(getMazeStrings());
+            maze = getInitWorld();
             shouldUpdate = true;
         }
         updateMaze();
@@ -508,8 +424,8 @@
             return texture;
         }
 
-        var program0; var projDist = 200;
-        var oldFov = 45;
+        var program0; var projDist = 50;
+        var oldFov = 30;
         var isScroll = false;
         var shapeMoved = false;
         var thetaPos = 0;
@@ -640,9 +556,6 @@
             function getProjMatrix() {
                 var projMat = mat4.create();
                 mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
-                mat4.rotate(projMat, projMat, getRotX(), xAxis);
-                mat4.rotate(projMat, projMat, getRotY(), yAxis);
-                mat4.rotate(projMat, projMat, getRotZ(), zAxis);
                 return projMat;
             }
 
