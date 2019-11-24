@@ -76,40 +76,14 @@
 
     </script>
     <script>
-        var maze = null;
-        var shouldUpdate = false;
-        function updateMaze() {
-            maze = getInitWorld();
-            shouldUpdate = true;
-        }
-        updateMaze();
-        $("#updateMazeButton").click(updateMaze);
+      
+    
 
 
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
-            var NO_CONTROL = 0;
-            var IS_ROTATING = 1;
-            var IS_MOVING = 2;
-            var control = {
-                mode: NO_CONTROL,
-                rotateRate: 0.005, //0.004,
-                moveRate: 0.005,
-                displacement: null,
-                currentHeading: maze.startHeading,
-                fromHeading: null,
-                toHeading: null,
-                currentPosition: null,
-                fromPosition: maze.startPosition,
-                toPosition: null
-            };
-            startPos = maze.startPosition;
-            control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
-                startPos[1] * 1.0 + 0.5,
-                0.0);
+   
 
-            var webglCanvas = $("#webglCanvas");
-            var clientRect = webglCanvas[0].getBoundingClientRect();
           
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
@@ -278,75 +252,9 @@
             });
 
 
-            webglCanvas.keydown(function (event) {
-                var currentMultiple;
-                var currentX, currentY;
-                var dx, dy;
-                var direction;
-                if (event.key == "ArrowLeft") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple + 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowRight") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple - 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowUp") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = Math.round(Math.cos(control.currentHeading));
-                        dy = Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
-                }
-                else if (event.key == "ArrowDown") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = -Math.round(Math.cos(control.currentHeading));
-                        dy = -Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
+            webglCanvas.keydown(function (event) {       
+               if (event.key == "ArrowDown") {
+                    //TODO
                 }
                 return false;
             });
@@ -382,23 +290,21 @@
                 });
 
             }
-
             function reset() {
                 control = {
                     mode: NO_CONTROL,
                     rotateRate: 0.005, //0.004,
                     moveRate: 0.005,
                     displacement: null,
-                    currentHeading: maze.startHeading,
+                    currentHeading: 0.6,
                     zHeading: -0.4,
                     fromHeading: null,
                     toHeading: null,
                     currentPosition: null,
-                    fromPosition: maze.startPosition,
+                    fromPosition: [0, 1],
                     toPosition: null
                 };
-                startPos = maze.startPosition;
-
+                startPos = [0, 1];
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
@@ -493,11 +399,6 @@
 
 
             function updateWebGL() {
-                if (shouldUpdate) {
-                    shouldUpdate = false;
-                    reset();
-                }
-
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
