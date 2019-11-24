@@ -49,6 +49,7 @@
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
         uniform mat4 transform_Mat;
+        uniform mat4 xform_normalMat;
    
         void main() {
             // TODO: Multiply by P*V*M
@@ -243,6 +244,31 @@
             return shapeData;
         }
 
+        function createBigFloor(x, y, z, delta) {
+            var shapeData = createShapeData();
+            var v = shapeData.positions.length / 3;
+            shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+            var i;
+            for (i = 0; i < 4; i++) {
+                shapeData.normals.push([0.0, 0.0, 1.0]);
+            }
+
+            shapeData.positions.push(x, y, z);
+            shapeData.texCoords.push(0.0, 0.0);
+
+            shapeData.positions.push(x + delta, y, z);
+            shapeData.texCoords.push(1.0, 0.0);
+
+            shapeData.positions.push(x + delta, y + delta, z);
+            shapeData.texCoords.push(1.0, 1.0);
+
+            shapeData.positions.push(x, y + delta, z);
+            shapeData.texCoords.push(0.0, 1.0);
+
+            return shapeData;
+        }
+
         function createRoof(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
@@ -276,6 +302,12 @@
             shapes.push(createShape(gl, createWestWall(x, y, z)));
             shapes.push(createShape(gl, createFloor(x, y, z)));
             shapes.push(createShape(gl, createRoof(x, y, z)));
+            return shapes;
+        }
+
+        function createGround(gl, x, y, z) {
+            shapes = [];
+            shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
             return shapes;
         }
 
@@ -382,7 +414,7 @@
             var queue = new createjs.LoadQueue(true);
 
             queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
-            queue.loadManifest(["data/floor.jpg", { id: "floor", src: "data/floor.jpg" }]);
+            queue.loadManifest(["data/white.jpg", { id: "floor", src: "data/white.jpg" }]);
             queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
             queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
             queue.on("complete", function (event) {
@@ -517,6 +549,7 @@
             program0.xform_viewMat = gl.getUniformLocation(program0, "xform_viewMat");
             program0.xform_modelMat = gl.getUniformLocation(program0, "xform_modelMat");
             program0.transform_Mat = gl.getUniformLocation(program0, "transform_Mat");
+            program0.xform_normalMat = gl.getUniformLocation(program0, "xform_normalMat");
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             var lastTime = performance.now();
@@ -540,6 +573,15 @@
                 var projMat = mat4.create();
                 mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
                 return projMat;
+            }
+
+            function getNormalMatrix() {
+                var normalMat = mat4.create();
+                var modelViewMat = mat4.create();
+                modelViewMat = mat4.multiply(modelViewMat, getModelMatrix(), getViewMatrix());
+                mat4.invert(normalMat, modelViewMat);
+                mat4.transpose(normalMat, normalMat);
+                return normalMat;
             }
 
             function getViewMatrix() {
@@ -612,8 +654,8 @@
                             Math.cos(-1 * (thetaPos + 3.14)) * Math.cos(-1 * (phiPos - 1.57))
                         ];
                         addTrackingPoint(thetaPos, phiPos);
-                        control.currentHeading += thetaShift / 45  * (getFov() / 2);
-                        control.zHeading -= phiShift / 45  * (getFov() / 2);
+                        control.currentHeading += thetaShift / 45 * (getFov() / 2);
+                        control.zHeading -= phiShift / 45 * (getFov() / 2);
                         shapeMoved = true;
                         gl.uniform3fv(gl.getUniformLocation(program0, "viewUp"), viewUp);;
                         gl.uniform3fv(gl.getUniformLocation(program0, "viewDir"), viewDir);;
@@ -724,8 +766,43 @@
                 return true;
             }
 
+            function drawShape(gl, shape, texture, transmat) {
+                program0.draw(gl, shape, function () {
+                    if (program0.xform_projMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                    }
+                    if (program0.xform_viewMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
+                    }
+                    if (program0.xform_modelMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
+                    }
+                    if (transmat != null) {
+                        if (program0.transform_Mat != null) {
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
+                        }
+                    }
+                    if (program0.xform_normalMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_normalMat, false, getNormalMatrix());
+                    }
+                    if (program0.texture != null) {
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.uniform1i(program0.texture, 0);
+                    }
+                });
+
+            }
+
             var all_cubes = [];
             var new_cube = [];
+
+            var ground = [];
+            var new_ground = [];
 
             function reset() {
                 control = {
@@ -748,6 +825,7 @@
                     0.0);
 
                 new_cube = createCube(gl, 5, 5, 5);
+                new_ground = createGround(gl, 5, 5, 5);
             }
             reset();
             var height = 0;
@@ -760,56 +838,10 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cube => cube.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                }));
-                new_cube.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, dropmat);
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                });
+                all_cubes.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureWall, transmat)));
+                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, null)));
+                new_cube.forEach(shape => drawShape(gl, shape, textureWall, null));
+                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, null));
 
                 if (height > -5) {
                     height = height - 0.008;
@@ -820,7 +852,7 @@
                     window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
                 }
                 if (height <= -5) {
-                    
+
                 }
             }
             var dir = 0;
@@ -828,28 +860,31 @@
             var lastY = 5;
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
-                if (all_cubes.length >= 7){
+                if (all_cubes.length >= 7) {
                     all_cubes.shift();
+                    ground.shift();
+
                 }
                 height = 0;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
             }
-            function randDirAndDist(){
-                var randDir = Math.floor(Math.random() * (+4 - +0)) + +0; 
+            function randDirAndDist() {
+                var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 var rand = Math.random() * (+3.5 - +1.5) + +1.5;
-                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3 || dir == 3 && randDir == 1){
+                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3 || dir == 3 && randDir == 1) {
                     dir = 0;
                     lastX += rand;
-                } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1){
+                } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
                     dir = 1;
                     lastY += rand;
-                } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3){
+                } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
                     dir = 3;
                     lastY -= rand;
                 } else randDirAndDist();
-                
+
                 new_cube = createCube(gl, lastX, lastY, 5);
+                new_ground = createGround(gl, lastX - 20, lastY - 20, 5);
             }
 
             $("#webglCanvas").dblclick(function (event) {
@@ -883,7 +918,8 @@
                         targetPos[0] + 0.5,
                         targetPos[1] + 0.5,
                         0.0
-                    )}
+                    )
+                }
             });
 
 
