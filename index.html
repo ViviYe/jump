@@ -311,8 +311,13 @@
 
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
+                character = createCharacter(gl, texturePink);
+                
             }
             reset();
+            function drawCharacter(transmat, rotmat){
+            character.shapes.forEach(shape => drawShape(gl, shape, character.texture, transmat));
+            }
 
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
@@ -321,7 +326,6 @@
                 gl.enable(gl.DEPTH_TEST);
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
-                console.log(new_cube.shapes);
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
 

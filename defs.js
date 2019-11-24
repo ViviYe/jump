@@ -46,6 +46,8 @@ var height = 0;
 var transform_matrix_1 = mat4.create();
 var transform_matrix_2 = mat4.create();
 var transform_matrix_3 = mat4.create();
+var transform_character = mat4.create();
+var rotate_character = mat4.create();
 
 var all_cubes = [];
 var new_cube = [];
@@ -53,6 +55,8 @@ var new_cube = [];
 var ground = [];
 var new_ground = [];
 
+// character
+var character = [];
 
 // init the first block
 var dir = 0;
