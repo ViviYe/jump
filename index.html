@@ -422,6 +422,10 @@
             }
             reset();
             function drawCharacter(transmat, rotmat){
+                // gl.clearColor(0.3, 0.7, 1.0, 1.0);
+                // gl.clearDepth(1.0);
+                // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                // gl.enable(gl.DEPTH_TEST);
             character.shapes.forEach(shape => drawShape(gl, shape, character.texture, transmat));
             }
 
@@ -615,11 +619,13 @@
                         }
                     }
                 }
-                if (bouncing){
-                    window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-                }else{
+          //      if (bouncing){
+           //        window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+          //      }else{
                 window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-                }
+          //      }
+                 drawCharacter(transform_character, rotate_character);
+
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
