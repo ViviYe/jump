@@ -40,6 +40,8 @@
     <script src="js/gl-matrix-min.js"></script>
     <script src="js/preloadjs-0.6.2.min.js"></script>
     <script src="drawWall.js"></script>
+    <script src="basicHelper.js"></script>
+    <script src="defs.js"></script>
 
     <script id="vertexShader0" type="x-shader/x-vertex">
        attribute vec3 vert_position;
@@ -117,84 +119,6 @@
             }
         }
 
-   
-
-        function createShpere(x, y, z) {
-            var shapeData = createShapeData();
-            var v = shapeData.positions.length / 3;
-            // x, y, z are the center
-            var SPHERE_DIV = 6;
-            var i, ai, si, ci;
-            var j, aj, sj, cj;
-            var p1, p2;
-
-            for (j = 0; j <= SPHERE_DIV; j++) {
-                aj = j * Math.PI / SPHERE_DIV;
-                sj = Math.sin(aj);
-                cj = Math.cos(aj);
-                for (i = 0; i <= SPHERE_DIV; i++) {
-                    ai = i * 2 * Math.PI / SPHERE_DIV;
-                    si = Math.sin(ai);
-                    ci = Math.cos(ai);
-                    shapeData.positions.push(si * sj, cj, ci * sj);
-                    shapeData.normals.push(si * sj, cj, ci * sj);
-                    shapeData.texCoords.push(0.0, 0.0);
-                }
-            }
-            for (j = 0; j < SPHERE_DIV; j++) {
-                for (i = 0; i < SPHERE_DIV; i++) {
-                    p1 = j * (SPHERE_DIV + 1) + i;
-                    p2 = p1 + (SPHERE_DIV + 1);
-                    shapeData.indices.push(p1, p2, p1 + 1, p1 + 1, p2, p2 + 1);
-                }
-            }
-
-            return shapeData;
-        }
-
-
-        function createRoof(x, y, z) {
-            var shapeData = createShapeData();
-            var v = shapeData.positions.length / 3;
-            shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
-            var i;
-            for (i = 0; i < 4; i++) {
-                shapeData.normals.push([0.0, 0.0, -1.0]);
-            }
-
-            shapeData.positions.push(x, y, z + 1);
-            shapeData.texCoords.push(0.0, 0.0);
-
-            shapeData.positions.push(x + 1, y + 1, z + 1);
-            shapeData.texCoords.push(1.0, 1.0);
-
-            shapeData.positions.push(x, y + 1, z + 1);
-            shapeData.texCoords.push(1.0, 0.0);
-
-            shapeData.positions.push(x + 1, y, z + 1);
-            shapeData.texCoords.push(0.0, 1.0);
-
-            return shapeData;
-        }
-
-        function createCube(gl, x, y, z) {
-            shapes = [];
-            shapes.push(createShape(gl, createNorthWall(x, y, z)));
-            shapes.push(createShape(gl, createSouthWall(x, y, z)));
-            shapes.push(createShape(gl, createEastWall(x, y, z)));
-            shapes.push(createShape(gl, createWestWall(x, y, z)));
-            shapes.push(createShape(gl, createFloor(x, y, z)));
-            shapes.push(createShape(gl, createRoof(x, y, z)));
-            return shapes;
-        }
-
-        function createGround(gl, x, y, z) {
-            shapes = [];
-            shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
-            return shapes;
-        }
-
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -221,78 +145,6 @@
             return gl;
         }
 
-        function createShader(gl, shaderScriptId) {
-            var shaderScript = $("#" + shaderScriptId);
-            var shaderSource = shaderScript[0].text;
-            var shaderType = null;
-            if (shaderScript[0].type == "x-shader/x-vertex") {
-                shaderType = gl.VERTEX_SHADER;
-            } else if (shaderScript[0].type == "x-shader/x-fragment") {
-                shaderType = gl.FRAGMENT_SHADER;
-            } else {
-                throw new Error("Invalid shader type: " + shaderScript[0].type)
-            }
-            var shader = gl.createShader(shaderType);
-            gl.shaderSource(shader, shaderSource);
-            gl.compileShader(shader);
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                var infoLog = gl.getShaderInfoLog(shader);
-                gl.deleteShader(shader);
-                throw new Error("An error occurred compiling the shader: " + infoLog);
-            } else {
-                return shader;
-            }
-        }
-
-
-        function createGlslProgram(gl, vertexShaderId, fragmentShaderId) {
-            var program = gl.createProgram();
-            gl.attachShader(program, createShader(gl, vertexShaderId));
-            gl.attachShader(program, createShader(gl, fragmentShaderId));
-            gl.linkProgram(program);
-            gl.validateProgram(program);
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                var infoLog = gl.getProgramInfoLog(program);
-                gl.deleteProgram(program);
-                throw new Error("An error occurred linking the program: " + infoLog);
-            } else {
-                return program;
-            }
-        }
-
-        function createShape(gl, shapeData) {
-            var shape = {};
-            var vertexData = [];
-            var vertexCount = shapeData.positions.length / 3;
-            var i;
-            for (i = 0; i < vertexCount; i++) {
-                vertexData.push(shapeData.positions[3 * i], shapeData.positions[3 * i + 1], shapeData.positions[3 * i + 2]);
-                vertexData.push(shapeData.normals[3 * i], shapeData.normals[3 * i + 1], shapeData.normals[3 * i + 2]);
-                vertexData.push(shapeData.texCoords[2 * i], shapeData.texCoords[2 * i + 1]);
-            }
-            var vertexArray = new Float32Array(vertexData);
-            var vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            var indexArray = new Uint16Array(shapeData.indices);
-            var indexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexArray, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-            shape.vertexBuffer = vertexBuffer;
-            shape.indexBuffer = indexBuffer;
-            shape.size = shapeData.indices.length;
-            shape.stride = 4 * (3 + 3 + 2);
-            shape.positionOffset = 4 * 0;
-            shape.normalOffset = 4 * 3;
-            shape.texCoordOffset = 4 * (3 + 3);
-            return shape;
-        }
-
-        var xAxis = vec3.fromValues(1, 0, 0);
-        var yAxis = vec3.fromValues(0, 1, 0);
-        var zAxis = vec3.fromValues(0, 0, 1);
 
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
@@ -306,7 +158,7 @@
             });
         }
 
-        var textures = [];
+
 
         function createTexture(gl, img) {
             // Step 1: Create the texture object.
@@ -322,17 +174,6 @@
             gl.generateMipmap(gl.TEXTURE_2D);
             return texture;
         }
-
-        var program0; var projDist = 50;
-        var oldFov = 30;
-        var isScroll = false;
-        var shapeMoved = false;
-        var thetaPos = 0;
-        var phiPos = 0;
-        var thetaShift = 0;
-        var phiShift = 0;
-        var curTheta = 0;
-        var curPhi = 0;
 
 
         function runWebGL(queue) {
@@ -358,27 +199,8 @@
                 startPos[1] * 1.0 + 0.5,
                 0.0);
 
-            var mouse = {
-                mouseDown: false,
-                mouseDragged: false,
-            }
             var webglCanvas = $("#webglCanvas");
-
-            var prevMouseDown = false;
             var clientRect = webglCanvas[0].getBoundingClientRect();
-            var moveShape = false;
-            var initShapePos = [0, 0];
-
-            var disp_x = 0.0;
-            var disp_y = 0.0;
-            var viewDir = [0, 0, -1];
-            var viewUp = [0, 1, 0];
-
-            var friction = 0.80;
-            var stopThreshold = 0.0001;
-
-            var trackingPoints = [];
-            var decelerating = false;
 
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
@@ -635,10 +457,6 @@
                 return false;
             });
 
-            function canGo(targetPos) {
-                return true;
-            }
-
             function drawShape(gl, shape, texture, transmat) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
@@ -777,7 +595,6 @@
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
 
-                if (canGo(targetPos)) {
                     control.mode = IS_MOVING;
                     control.fromPosition = vec3.fromValues(
                         currentX + 0.5,
@@ -794,7 +611,7 @@
                         targetPos[1] + 0.5,
                         0.0
                     )
-                }
+                
             });
 
 
