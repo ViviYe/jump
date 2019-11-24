@@ -65,3 +65,48 @@ function createShader(gl, shaderScriptId) {
         return shader;
     }
 }
+
+
+function initializeWebGL(canvas) {
+    // Getting WebGL context the right way
+    var gl = null;
+    try {
+        gl = canvas[0].getContext("experimental-webgl");
+        if (!gl) {
+            gl = canvas[0].getContext("webgl");
+        }
+    } catch (error) {
+    }
+    if (!gl) {
+        alert("Could not get WebGL context!");
+        throw new Error("Could not get WebGL context!");
+    }
+    return gl;
+}
+
+function startWebGL() {
+    var queue = new createjs.LoadQueue(true);
+
+    queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
+    queue.loadManifest(["data/grey.jpg", { id: "floor", src: "data/grey.jpg" }]);
+    queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
+    queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
+    queue.on("complete", function (event) {
+        runWebGL(queue);
+    });
+}
+
+function createTexture(gl, img) {
+    // Step 1: Create the texture object.
+    var texture = gl.createTexture();
+    // Step 2: Bind the texture object to the "target" TEXTURE_2D
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // Step 3: (Optional) Tell WebGL that pixels are flipped vertically,
+    //         so that we don't have to deal with flipping the y-coordinate.
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    // Step 4: Download the image data to the GPU.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    // Step 5: Creating a mipmap so that the texture can be anti-aliased.
+    gl.generateMipmap(gl.TEXTURE_2D);
+    return texture;
+}
