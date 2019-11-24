@@ -46,9 +46,11 @@ var height = 0;
 var transform_matrix_1 = mat4.create();
 var transform_matrix_2 = mat4.create();
 var transform_matrix_3 = mat4.create();
-var transform_character = mat4.create();
-var rotate_character = mat4.create();
 
+
+
+
+var characterheight = 0;
 var all_cubes = [];
 var new_cube = [];
 
@@ -86,3 +88,5 @@ var control = {
     fromPosition: [0, 1],
     toPosition: null
 };
+
+var init = true;

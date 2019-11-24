@@ -305,8 +305,8 @@ function createCharacter(gl, tex){
         shapes: [],
         texture: tex
     }
-    character.shapes.push(createShape(gl, createShpere(5.5, 5.5, 2, 0.2)));
-    character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 1, 0.7, 0.18)));
+    character.shapes.push(createShape(gl, createShpere(5.5, 5.5, 15, 0.2)));
+    character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
     return character;
 }
 
