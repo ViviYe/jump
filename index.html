@@ -414,7 +414,7 @@
             var queue = new createjs.LoadQueue(true);
 
             queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
-            queue.loadManifest(["data/white.jpg", { id: "floor", src: "data/white.jpg" }]);
+            queue.loadManifest(["data/grey.jpg", { id: "floor", src: "data/grey.jpg" }]);
             queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
             queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
             queue.on("complete", function (event) {
@@ -859,6 +859,7 @@
             var dir = 0;
             var lastX = 5;
             var lastY = 5;
+            var dis = 0;
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
                 if (all_cubes.length >= 7) {
@@ -872,16 +873,16 @@
             }
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
-                var rand = Math.random() * (+3.5 - +1.5) + +1.5;
+                dis = Math.random() * (+3.5 - +1.5) + +1.5;
                 if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3 || dir == 3 && randDir == 1) {
                     dir = 0;
-                    lastX += rand;
+                    lastX += dis;
                 } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
                     dir = 1;
-                    lastY += rand;
+                    lastY += dis;
                 } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
                     dir = 3;
-                    lastY -= rand;
+                    lastY -= dis;
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5);
@@ -897,11 +898,11 @@
                 dy = Math.round(Math.sin(dir * Math.PI / 2));
                 var targetPos;
                 if (dir == 0)
-                    targetPos = [currentX + dx + 1.5, currentY + dy];
+                    targetPos = [currentX + dx + 0.4 * dis, currentY + dy];
                 if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy + 1];
+                    targetPos = [currentX + dx, currentY + dy + 0.4 * dis];
                 if (dir == 3)
-                    targetPos = [currentX + dx, currentY + dy - 1.5];
+                    targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
 
                 if (canGo(targetPos)) {
                     control.mode = IS_MOVING;
