@@ -755,6 +755,35 @@
                 return true;
             }
 
+            function drawShape(gl, shape, texture, transmat) {
+                program0.draw(gl, shape, function () {
+                    if (program0.xform_projMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                    }
+                    if (program0.xform_viewMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
+                    }
+                    if (program0.xform_modelMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
+                    }
+                    if (transmat != null) {
+                        if (program0.transform_Mat != null) {
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
+                        }
+                    }
+                    if (program0.texture != null) {
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.uniform1i(program0.texture, 0);
+                    }
+                });
+
+            }
+
             var all_cubes = [];
             var new_cube = [];
 
@@ -795,102 +824,10 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cube => cube.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                }));
-                ground.forEach(cube => cube.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-                        if (program0.transform_Mat != null) {
-                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
-                        }
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                }));
-                new_cube.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureWall);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                });
-                new_ground.forEach(shape => {
-                    program0.draw(gl, shape, function () {
-                        if (program0.xform_projMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
-                        }
-                        if (program0.xform_viewMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
-                        }
-                        if (program0.xform_modelMat != null) {
-                            gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
-                        }
-
-                        if (program0.texture != null) {
-                            gl.activeTexture(gl.TEXTURE0);
-                            gl.bindTexture(gl.TEXTURE_2D, textureFloor);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                            gl.uniform1i(program0.texture, 0);
-                        }
-                    });
-                });
+                all_cubes.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureWall, transmat)));
+                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, null)));
+                new_cube.forEach(shape => drawShape(gl, shape, textureWall, null));
+                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, null));
 
                 if (height > -5) {
                     height = height - 0.008;
