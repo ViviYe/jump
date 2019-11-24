@@ -49,6 +49,7 @@
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
         uniform mat4 transform_Mat;
+        uniform mat4 xform_normalMat;
    
         void main() {
             // TODO: Multiply by P*V*M
@@ -548,6 +549,7 @@
             program0.xform_viewMat = gl.getUniformLocation(program0, "xform_viewMat");
             program0.xform_modelMat = gl.getUniformLocation(program0, "xform_modelMat");
             program0.transform_Mat = gl.getUniformLocation(program0, "transform_Mat");
+            program0.xform_normalMat = gl.getUniformLocation(program0, "xform_normalMat");
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             var lastTime = performance.now();
@@ -571,6 +573,15 @@
                 var projMat = mat4.create();
                 mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
                 return projMat;
+            }
+
+            function getNormalMatrix() {
+                var normalMat = mat4.create();
+                var modelViewMat = mat4.create();
+                modelViewMat = mat4.multiply(modelViewMat, getModelMatrix(), getViewMatrix());
+                mat4.invert(normalMat, modelViewMat);
+                mat4.transpose(normalMat, normalMat);
+                return normalMat;
             }
 
             function getViewMatrix() {
@@ -770,6 +781,9 @@
                         if (program0.transform_Mat != null) {
                             gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
                         }
+                    }
+                    if (program0.xform_normalMat != null) {
+                        gl.uniformMatrix4fv(program0.xform_normalMat, false, getNormalMatrix());
                     }
                     if (program0.texture != null) {
                         gl.activeTexture(gl.TEXTURE0);
