@@ -37,3 +37,28 @@ var mouse = {
 }
 
 var prevMouseDown = false;
+
+
+var height = 0;
+
+var transform_matrix_1 = mat4.create();
+var transform_matrix_2 = mat4.create();
+var transform_matrix_3 = mat4.create();
+
+var all_cubes = [];
+var new_cube = [];
+
+var ground = [];
+var new_ground = [];
+
+var height = 0;
+
+var transform_matrix_1 = mat4.create();
+var transform_matrix_2 = mat4.create();
+var transform_matrix_3 = mat4.create();
+
+// init the first block
+var dir = 0;
+var lastX = 5;
+var lastY = 5;
+var dis = 0;

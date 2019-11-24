@@ -42,6 +42,7 @@
     <script src="drawWall.js"></script>
     <script src="basicHelper.js"></script>
     <script src="defs.js"></script>
+    <script src="view.js"></script>
 
     <script id="vertexShader0" type="x-shader/x-vertex">
        attribute vec3 vert_position;
@@ -74,51 +75,7 @@
         }
 
     </script>
-
-
     <script>
-        $("#eyeHeightSpinner").spinner({
-            min: 1.5,
-            max: 2.5,
-            step: 0.1
-        });
-
-        function getFov() {
-            if (typeof projDist === 'undefined') {
-                projDist = 0;
-            }
-            if (isScroll) {
-                oldFov += projDist / 100;
-            }
-            oldFov = Math.max(Math.min(oldFov, 60), 30);
-            isScroll = false;
-            const fov = oldFov * Math.PI / 180.0;
-            return oldFov * Math.PI / 180.0;
-        }
-
-        function getEyeHeight() {
-            return 5;
-        }
-
-        function getInitWorld() {
-            return {
-                sizeX: 5,
-                sizeY: 5,
-                data: null,
-                startHeading: 0.6,
-                startPosition: [0, 1]
-            }
-        }
-
-        function createShapeData() {
-            return {
-                positions: [],
-                normals: [],
-                texCoords: [],
-                indices: []
-            }
-        }
-
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -194,14 +151,13 @@
                 toPosition: null
             };
             startPos = maze.startPosition;
-
             control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                 startPos[1] * 1.0 + 0.5,
                 0.0);
 
             var webglCanvas = $("#webglCanvas");
             var clientRect = webglCanvas[0].getBoundingClientRect();
-
+          
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
                     return;
@@ -275,12 +231,6 @@
                 gl.useProgram(null);
             };
 
-            function getProjMatrix() {
-                var projMat = mat4.create();
-                mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
-                return projMat;
-            }
-
             function getNormalMatrix() {
                 var normalMat = mat4.create();
                 var modelViewMat = mat4.create();
@@ -312,11 +262,6 @@
                 return viewMat;
             }
 
-            function getModelMatrix() {
-                var modelMat = mat4.create();
-                mat4.identity(modelMat);
-                return modelMat;
-            }
 
             function addTrackingPoint(theta, phi) {
                 var time = Date.now();
@@ -489,12 +434,6 @@
 
             }
 
-            var all_cubes = [];
-            var new_cube = [];
-
-            var ground = [];
-            var new_ground = [];
-
             function reset() {
                 control = {
                     mode: NO_CONTROL,
@@ -519,11 +458,6 @@
                 new_ground = createGround(gl, -15, -15, 0);
             }
             reset();
-            var height = 0;
-
-            var transform_matrix_1 = mat4.create();
-            var transform_matrix_2 = mat4.create();
-            var transform_matrix_3 = mat4.create();
 
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
@@ -547,10 +481,7 @@
 
                 }
             }
-            var dir = 0;
-            var lastX = 5;
-            var lastY = 5;
-            var dis = 0;
+
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
                 if (all_cubes.length >= 7) {

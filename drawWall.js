@@ -1,3 +1,12 @@
+function createShapeData() {
+    return {
+        positions: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    }
+}
+
 function createNorthWall(x, y, z) {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
