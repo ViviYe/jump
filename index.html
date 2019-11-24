@@ -619,11 +619,11 @@
                         }
                     }
                 }
-          //      if (bouncing){
-           //        window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-          //      }else{
+               if (bouncing){
+                  window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+               }else{
                 window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-          //      }
+                }
                  drawCharacter(transform_character, rotate_character);
 
                 window.requestAnimationFrame(updateWebGL);
