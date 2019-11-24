@@ -489,12 +489,6 @@
 
             }
 
-            var all_cubes = [];
-            var new_cube = [];
-
-            var ground = [];
-            var new_ground = [];
-
             function reset() {
                 control = {
                     mode: NO_CONTROL,
@@ -521,9 +515,9 @@
             reset();
             var height = 0;
 
-            var transform_matrix_1 = mat4.create();
-            var transform_matrix_2 = mat4.create();
-            var transform_matrix_3 = mat4.create();
+            
+            var bouncing = false;
+
 
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
@@ -534,23 +528,52 @@
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
                 new_cube.forEach(shape => drawShape(gl, shape, textureWall, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
+            }
 
+            function dropCube(transmat, dropmat){
+                drawCube(transmat, dropmat);
+                // if (bouncing) {
+                //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
+                // }else 
                 if (height > -5) {
                     height = height - 0.008;
+                    if (height <= -5)
+                        bouncing = true;
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, height);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     transform_matrix_2 = droptranslation;
-                    window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
-                }
-                if (height <= -5) {
-
-                }
+                    window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
+                } 
             }
-            var dir = 0;
-            var lastX = 5;
-            var lastY = 5;
-            var dis = 0;
+            var decelRate = 0.99;
+            var decelRate2 = 0.3;
+            var maxHeight = 0.7;
+            var dropping = false;
+            var eps = 0.01;
+
+            function bounce(transmat, dropmat){
+                drawCube(transmat, dropmat);
+                if (maxHeight < 0.08) {
+                    bouncing = false;
+                    return;
+                }
+                if (!dropping) {
+                    height += (0.008 * decelRate2);
+                    dropping = height >= maxHeight - 5;
+                    maxHeight *= decelRate;
+                }else {
+                    height -= (0.008 * decelRate2);
+                    dropping = height > - 5;
+                }
+                var drop = vec3.create();
+                vec3.set(drop, 0, 0, height);
+                var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                transform_matrix_2 = droptranslation;
+                window.requestAnimationFrame(() => bounce(transmat, droptranslation));
+            }
+
+
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
                 if (all_cubes.length >= 7) {
@@ -559,9 +582,12 @@
 
                 }
                 height = 0;
+                maxHeight = 1;
+                bouncing = false;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
             }
+
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -611,6 +637,8 @@
                         targetPos[1] + 0.5,
                         0.0
                     )
+                    
+            // dropCube(transform_matrix_1, transform_matrix_2);
                 
             });
 
@@ -680,8 +708,11 @@
                         }
                     }
                 }
-                window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-
+                if (bouncing){
+                    window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                }else{
+                window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                }
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
