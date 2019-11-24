@@ -825,13 +825,14 @@
                     0.0);
 
                 new_cube = createCube(gl, 5, 5, 5);
-                new_ground = createGround(gl, 5, 5, 5);
+                new_ground = createGround(gl, -15, -15, 0);
             }
             reset();
             var height = 0;
 
             var transform_matrix_1 = mat4.create();
             var transform_matrix_2 = mat4.create();
+            var transform_matrix_3 = mat4.create();
 
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
@@ -839,9 +840,9 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 all_cubes.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureWall, transmat)));
-                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, null)));
-                new_cube.forEach(shape => drawShape(gl, shape, textureWall, null));
-                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, null));
+                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
+                new_cube.forEach(shape => drawShape(gl, shape, textureWall, dropmat));
+                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
 
                 if (height > -5) {
                     height = height - 0.008;
@@ -884,7 +885,7 @@
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5);
-                new_ground = createGround(gl, lastX - 20, lastY - 20, 5);
+                new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
             $("#webglCanvas").dblclick(function (event) {
