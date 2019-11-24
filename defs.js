@@ -86,4 +86,3 @@ var control = {
     fromPosition: [0, 1],
     toPosition: null
 };
-

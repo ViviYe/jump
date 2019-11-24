@@ -33,6 +33,7 @@
         </div>
 
     </div>
+
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery-3.1.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
@@ -74,9 +75,45 @@
         }
 
     </script>
+
+
     <script>
+
+        var maze = null;
+        var shouldUpdate = false;
+        function updateMaze() {
+            maze = getInitWorld();
+            shouldUpdate = true;
+        }
+        updateMaze();
+        $("#updateMazeButton").click(updateMaze);
+
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
+            var NO_CONTROL = 0;
+            var IS_ROTATING = 1;
+            var IS_MOVING = 2;
+            var control = {
+                mode: NO_CONTROL,
+                rotateRate: 0.005, //0.004,
+                moveRate: 0.005,
+                displacement: null,
+                currentHeading: maze.startHeading,
+                fromHeading: null,
+                toHeading: null,
+                currentPosition: null,
+                fromPosition: maze.startPosition,
+                toPosition: null
+            };
+            startPos = maze.startPosition;
+
+            control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
+                startPos[1] * 1.0 + 0.5,
+                0.0);
+
+            var webglCanvas = $("#webglCanvas");
+            var clientRect = webglCanvas[0].getBoundingClientRect();
+
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
                     return;
@@ -119,6 +156,7 @@
                 window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
                 trackingPoints = [];
             }
+
             var textureWood = createTexture(gl, queue.getResult("wood"));
             var textureGreen = createTexture(gl, queue.getResult("green"));
             var texturePink = createTexture(gl, queue.getResult("pink"));
@@ -253,8 +291,74 @@
 
 
             webglCanvas.keydown(function (event) {
-                if (event.key == "ArrowDown") {
-                    //TODO
+                var currentMultiple;
+                var currentX, currentY;
+                var dx, dy;
+                var direction;
+                if (event.key == "ArrowLeft") {
+                    if (control.mode == NO_CONTROL) {
+                        control.mode = IS_ROTATING;
+                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
+                        control.fromHeading = currentMultiple * Math.PI / 2.0;
+                        control.toHeading = (currentMultiple + 1) * Math.PI / 2.0;
+                    }
+                } else if (event.key == "ArrowRight") {
+                    if (control.mode == NO_CONTROL) {
+                        control.mode = IS_ROTATING;
+                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
+                        control.fromHeading = currentMultiple * Math.PI / 2.0;
+                        control.toHeading = (currentMultiple - 1) * Math.PI / 2.0;
+                    }
+                } else if (event.key == "ArrowUp") {
+                    if (control.mode == NO_CONTROL) {
+                        currentX = Math.round(control.currentPosition[0] - 0.5);
+                        currentY = Math.round(control.currentPosition[1] - 0.5);
+                        dx = Math.round(Math.cos(control.currentHeading));
+                        dy = Math.round(Math.sin(control.currentHeading));
+                        var targetPos = [currentX + dx, currentY + dy];
+
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
+                    }
+                }
+                else if (event.key == "ArrowDown") {
+                    if (control.mode == NO_CONTROL) {
+                        currentX = Math.round(control.currentPosition[0] - 0.5);
+                        currentY = Math.round(control.currentPosition[1] - 0.5);
+                        dx = -Math.round(Math.cos(control.currentHeading));
+                        dy = -Math.round(Math.sin(control.currentHeading));
+                        var targetPos = [currentX + dx, currentY + dy];
+                        control.mode = IS_MOVING;
+                        control.fromPosition = vec3.fromValues(
+                            currentX + 0.5,
+                            currentY + 0.5,
+                            0.0
+                        );
+                        direction = vec3.fromValues(
+                            dx,
+                            dy,
+                            0.0
+                        );
+                        control.toPosition = vec3.fromValues(
+                            targetPos[0] + 0.5,
+                            targetPos[1] + 0.5,
+                            0.0
+                        )
+                    }
                 }
                 return false;
             });
@@ -290,21 +394,23 @@
                 });
 
             }
+
             function reset() {
                 control = {
                     mode: NO_CONTROL,
                     rotateRate: 0.005, //0.004,
                     moveRate: 0.005,
                     displacement: null,
-                    currentHeading: 0.6,
+                    currentHeading: maze.startHeading,
                     zHeading: -0.4,
                     fromHeading: null,
                     toHeading: null,
                     currentPosition: null,
-                    fromPosition: [0, 1],
+                    fromPosition: maze.startPosition,
                     toPosition: null
                 };
-                startPos = [0, 1];
+                startPos = maze.startPosition;
+
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
@@ -319,6 +425,7 @@
             character.shapes.forEach(shape => drawShape(gl, shape, character.texture, transmat));
             }
 
+            var bouncing = false;
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
                 gl.clearDepth(1.0);
@@ -328,28 +435,66 @@
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
+            }
 
+            function dropCube(transmat, dropmat){
+                drawCube(transmat, dropmat);
+                // if (bouncing) {
+                //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
+                // }else 
                 if (height > -5) {
-                    height = height - 0.008;
+                    height = height - 0.01;
+                    if (height <= -5)
+                        bouncing = true;
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, height);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     transform_matrix_2 = droptranslation;
-                    window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
-                }
+                    window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
+                } 
             }
+            var decelRate = 0.99;
+            var decelRate2 = 0.0015;
+            var maxHeight = 0.4;
+            var dropping = false;
+            var eps = 0.01;
+
+            function bounce(transmat, dropmat){
+                drawCube(transmat, dropmat);
+                if (maxHeight < 0.1) {
+                    bouncing = false;
+                    return;
+                }
+                if (!dropping) {
+                    height += decelRate2;
+                    dropping = height >= maxHeight - 5;
+                    maxHeight *= decelRate;
+                }else {
+                    height -= decelRate2;
+                    dropping = height > - 5;
+                }
+                var drop = vec3.create();
+                vec3.set(drop, 0, 0, height);
+                var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                transform_matrix_2 = droptranslation;
+                window.requestAnimationFrame(() => bounce(transmat, droptranslation));
+            }
+
 
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
-                if (all_cubes.length >= 4) {
+                if (all_cubes.length >= 7) {
                     all_cubes.shift();
                     ground.shift();
 
                 }
                 height = 0;
+                maxHeight = 1;
+                bouncing = false;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
             }
+
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -383,27 +528,34 @@
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
 
-                control.mode = IS_MOVING;
-                control.fromPosition = vec3.fromValues(
-                    currentX + 0.5,
-                    currentY + 0.5,
-                    0.0
-                );
-                direction = vec3.fromValues(
-                    dx,
-                    dy,
-                    0.0
-                );
-                control.toPosition = vec3.fromValues(
-                    targetPos[0] + 0.5,
-                    targetPos[1] + 0.5,
-                    0.0
-                )
-
+                    control.mode = IS_MOVING;
+                    control.fromPosition = vec3.fromValues(
+                        currentX + 0.5,
+                        currentY + 0.5,
+                        0.0
+                    );
+                    direction = vec3.fromValues(
+                        dx,
+                        dy,
+                        0.0
+                    );
+                    control.toPosition = vec3.fromValues(
+                        targetPos[0] + 0.5,
+                        targetPos[1] + 0.5,
+                        0.0
+                    )
+                    
+            // dropCube(transform_matrix_1, transform_matrix_2);
+                
             });
 
 
             function updateWebGL() {
+                if (shouldUpdate) {
+                    shouldUpdate = false;
+                    reset();
+                }
+
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
@@ -463,14 +615,19 @@
                         }
                     }
                 }
-                window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-
+                if (bouncing){
+                    window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                }else{
+                window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                }
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
         }
         startWebGL();
+
     </script>
+
 </body>
 
 </html>
