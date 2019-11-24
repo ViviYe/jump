@@ -33,7 +33,6 @@
         </div>
 
     </div>
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery-3.1.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
@@ -42,12 +41,12 @@
     <script src="drawWall.js"></script>
     <script src="basicHelper.js"></script>
     <script src="defs.js"></script>
+    <script src="view.js"></script>
 
     <script id="vertexShader0" type="x-shader/x-vertex">
        attribute vec3 vert_position;
        attribute vec2 vert_texCoord;
        varying vec2 geom_texCoord;
-
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
@@ -63,145 +62,16 @@
 
     <script id="fragmentShader0" type="x-shader/x-fragment">
         precision highp float;
-
         varying vec2 geom_texCoord;
-
         uniform sampler2D texture;
-
         void main() {
             vec4 c = texture2D(texture, geom_texCoord);
             gl_FragColor = c;
         }
-
     </script>
-
-
     <script>
-        $("#eyeHeightSpinner").spinner({
-            min: 1.5,
-            max: 2.5,
-            step: 0.1
-        });
-
-        function getFov() {
-            if (typeof projDist === 'undefined') {
-                projDist = 0;
-            }
-            if (isScroll) {
-                oldFov += projDist / 100;
-            }
-            oldFov = Math.max(Math.min(oldFov, 60), 30);
-            isScroll = false;
-            const fov = oldFov * Math.PI / 180.0;
-            return oldFov * Math.PI / 180.0;
-        }
-
-        function getEyeHeight() {
-            return 5;
-        }
-
-        function getInitWorld() {
-            return {
-                sizeX: 5,
-                sizeY: 5,
-                data: null,
-                startHeading: 0.6,
-                startPosition: [0, 1]
-            }
-        }
-
-        function createShapeData() {
-            return {
-                positions: [],
-                normals: [],
-                texCoords: [],
-                indices: []
-            }
-        }
-
-        var maze = null;
-        var shouldUpdate = false;
-        function updateMaze() {
-            maze = getInitWorld();
-            shouldUpdate = true;
-        }
-        updateMaze();
-        $("#updateMazeButton").click(updateMaze);
-
-        function initializeWebGL(canvas) {
-            // Getting WebGL context the right way
-            var gl = null;
-            try {
-                gl = canvas[0].getContext("experimental-webgl");
-                if (!gl) {
-                    gl = canvas[0].getContext("webgl");
-                }
-            } catch (error) {
-            }
-            if (!gl) {
-                alert("Could not get WebGL context!");
-                throw new Error("Could not get WebGL context!");
-            }
-            return gl;
-        }
-
-
-        function startWebGL() {
-            var queue = new createjs.LoadQueue(true);
-
-            queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
-            queue.loadManifest(["data/grey.jpg", { id: "floor", src: "data/grey.jpg" }]);
-            queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
-            queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
-            queue.on("complete", function (event) {
-                runWebGL(queue);
-            });
-        }
-
-
-
-        function createTexture(gl, img) {
-            // Step 1: Create the texture object.
-            var texture = gl.createTexture();
-            // Step 2: Bind the texture object to the "target" TEXTURE_2D
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            // Step 3: (Optional) Tell WebGL that pixels are flipped vertically,
-            //         so that we don't have to deal with flipping the y-coordinate.
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            // Step 4: Download the image data to the GPU.
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-            // Step 5: Creating a mipmap so that the texture can be anti-aliased.
-            gl.generateMipmap(gl.TEXTURE_2D);
-            return texture;
-        }
-
-
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
-            var NO_CONTROL = 0;
-            var IS_ROTATING = 1;
-            var IS_MOVING = 2;
-            var control = {
-                mode: NO_CONTROL,
-                rotateRate: 0.005, //0.004,
-                moveRate: 0.005,
-                displacement: null,
-                currentHeading: maze.startHeading,
-                fromHeading: null,
-                toHeading: null,
-                currentPosition: null,
-                fromPosition: maze.startPosition,
-                toPosition: null
-            };
-            startPos = maze.startPosition;
-
-            control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
-                startPos[1] * 1.0 + 0.5,
-                0.0);
-
-            var webglCanvas = $("#webglCanvas");
-            var clientRect = webglCanvas[0].getBoundingClientRect();
-
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
                     return;
@@ -220,35 +90,33 @@
                 } else {
                     decelerating = false;
                 }
-
             }
-
             function decelerate() {
                 var firstPoint = trackingPoints[0];
                 var lastPoint = trackingPoints[trackingPoints.length - 1];
-
                 var thetaOffset = lastPoint.theta - firstPoint.theta;
                 var phiOffset = lastPoint.phi - firstPoint.phi;
                 var timeOffset = lastPoint.time - firstPoint.time;
-
                 var D = (timeOffset / 15);
-
                 var decelTheta = (thetaOffset / D) || 0; // prevent NaN
                 var decelPhi = (phiOffset / D) || 0;
                 decelerating = true;
                 control.currentHeading += thetaShift / 80 * (getFov() / 2);
                 control.zHeading -= phiShift / 80 * (getFov() / 2);
-
                 thetaShift = 0.0;
                 phiShift = 0.0;
                 window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
                 trackingPoints = [];
             }
-
+            var textureWood = createTexture(gl, queue.getResult("wood"));
+            var textureGreen = createTexture(gl, queue.getResult("green"));
+            var texturePink = createTexture(gl, queue.getResult("pink"));
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
             var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
+            cubetextures = [textureWall, textureGreen, texturePink];
+          
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -259,7 +127,6 @@
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             var lastTime = performance.now();
-
             program0.draw = function (gl, shape, initialize) {
                 gl.useProgram(program0);
                 initialize();
@@ -274,13 +141,6 @@
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
                 gl.useProgram(null);
             };
-
-            function getProjMatrix() {
-                var projMat = mat4.create();
-                mat4.perspective(projMat, getFov(), 4.0 / 3.0, 0.1, 100.0);
-                return projMat;
-            }
-
             function getNormalMatrix() {
                 var normalMat = mat4.create();
                 var modelViewMat = mat4.create();
@@ -289,7 +149,6 @@
                 mat4.transpose(normalMat, normalMat);
                 return normalMat;
             }
-
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
@@ -311,24 +170,15 @@
                 shapeMoved = false;
                 return viewMat;
             }
-
-            function getModelMatrix() {
-                var modelMat = mat4.create();
-                mat4.identity(modelMat);
-                return modelMat;
-            }
-
             function addTrackingPoint(theta, phi) {
                 var time = Date.now();
                 trackingPoints.push({ theta, phi, time });
             }
-
             webglCanvas.bind('mousewheel', function (e) {
                 isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
                 return false;
             });
-
             webglCanvas.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
                     mouse.mouseDragged = true;
@@ -358,14 +208,12 @@
                     prevMouseDown = true;
                 }
             });
-
             webglCanvas.mousedown(function (event) {
                 if (event.button == 0) {
                     mouse.mouseDown = true;
                     mouse.mouseDragged = false;
                 }
             })
-
             $(document).mouseup(function (event) {
                 if (event.button == 0) {
                     mouse.mouseDown = false;
@@ -379,84 +227,14 @@
                         addTrackingPoint(curTheta, curPhi);
                         window.requestAnimationFrame(() => decelerate());
                     }
-
                 }
             });
-
-
             webglCanvas.keydown(function (event) {
-                var currentMultiple;
-                var currentX, currentY;
-                var dx, dy;
-                var direction;
-                if (event.key == "ArrowLeft") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple + 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowRight") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple - 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowUp") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = Math.round(Math.cos(control.currentHeading));
-                        dy = Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
-                }
-                else if (event.key == "ArrowDown") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = -Math.round(Math.cos(control.currentHeading));
-                        dy = -Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
+                if (event.key == "ArrowDown") {
+                    //TODO
                 }
                 return false;
             });
-
             function drawShape(gl, shape, texture, transmat) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
@@ -486,108 +264,58 @@
                         gl.uniform1i(program0.texture, 0);
                     }
                 });
-
             }
-
             function reset() {
                 control = {
                     mode: NO_CONTROL,
                     rotateRate: 0.005, //0.004,
                     moveRate: 0.005,
                     displacement: null,
-                    currentHeading: maze.startHeading,
+                    currentHeading: 0.6,
                     zHeading: -0.4,
                     fromHeading: null,
                     toHeading: null,
                     currentPosition: null,
-                    fromPosition: maze.startPosition,
+                    fromPosition: [0, 1],
                     toPosition: null
                 };
-                startPos = maze.startPosition;
-
+                startPos = [0, 1];
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
-
-                new_cube = createCube(gl, 5, 5, 5);
+                new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
             }
             reset();
-            var height = 0;
-
-            
-            var bouncing = false;
-
-
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureWall, transmat)));
+                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
-                new_cube.forEach(shape => drawShape(gl, shape, textureWall, dropmat));
+                console.log(new_cube.shapes);
+                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
-            }
-
-            function dropCube(transmat, dropmat){
-                drawCube(transmat, dropmat);
-                // if (bouncing) {
-                //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
-                // }else 
                 if (height > -5) {
                     height = height - 0.008;
-                    if (height <= -5)
-                        bouncing = true;
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, height);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     transform_matrix_2 = droptranslation;
-                    window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
-                } 
-            }
-            var decelRate = 0.99;
-            var decelRate2 = 0.3;
-            var maxHeight = 0.7;
-            var dropping = false;
-            var eps = 0.01;
-
-            function bounce(transmat, dropmat){
-                drawCube(transmat, dropmat);
-                if (maxHeight < 0.08) {
-                    bouncing = false;
-                    return;
+                    window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), droptranslation));
                 }
-                if (!dropping) {
-                    height += (0.008 * decelRate2);
-                    dropping = height >= maxHeight - 5;
-                    maxHeight *= decelRate;
-                }else {
-                    height -= (0.008 * decelRate2);
-                    dropping = height > - 5;
-                }
-                var drop = vec3.create();
-                vec3.set(drop, 0, 0, height);
-                var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
-                transform_matrix_2 = droptranslation;
-                window.requestAnimationFrame(() => bounce(transmat, droptranslation));
             }
-
-
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
-                if (all_cubes.length >= 7) {
+                if (all_cubes.length >= 4) {
                     all_cubes.shift();
                     ground.shift();
-
                 }
                 height = 0;
-                maxHeight = 1;
-                bouncing = false;
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
             }
-
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -601,11 +329,9 @@
                     dir = 3;
                     lastY -= dis;
                 } else randDirAndDist();
-
-                new_cube = createCube(gl, lastX, lastY, 5);
+                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
-
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
                 randDirAndDist();
@@ -620,35 +346,24 @@
                     targetPos = [currentX + dx, currentY + dy + 0.4 * dis];
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
-
-                    control.mode = IS_MOVING;
-                    control.fromPosition = vec3.fromValues(
-                        currentX + 0.5,
-                        currentY + 0.5,
-                        0.0
-                    );
-                    direction = vec3.fromValues(
-                        dx,
-                        dy,
-                        0.0
-                    );
-                    control.toPosition = vec3.fromValues(
-                        targetPos[0] + 0.5,
-                        targetPos[1] + 0.5,
-                        0.0
-                    )
-                    
-            // dropCube(transform_matrix_1, transform_matrix_2);
-                
+                control.mode = IS_MOVING;
+                control.fromPosition = vec3.fromValues(
+                    currentX + 0.5,
+                    currentY + 0.5,
+                    0.0
+                );
+                direction = vec3.fromValues(
+                    dx,
+                    dy,
+                    0.0
+                );
+                control.toPosition = vec3.fromValues(
+                    targetPos[0] + 0.5,
+                    targetPos[1] + 0.5,
+                    0.0
+                )
             });
-
-
             function updateWebGL() {
-                if (shouldUpdate) {
-                    shouldUpdate = false;
-                    reset();
-                }
-
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
@@ -671,7 +386,6 @@
                             control.mode = NO_CONTROL;
                         }
                     }
-
                 } else if (control.mode == IS_MOVING) {
                     var movex = 0;
                     var movey = 0;
@@ -708,19 +422,13 @@
                         }
                     }
                 }
-                if (bouncing){
-                    window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-                }else{
-                window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-                }
+                window.requestAnimationFrame(() => drawCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
         }
         startWebGL();
-
     </script>
-
 </body>
 
 </html>

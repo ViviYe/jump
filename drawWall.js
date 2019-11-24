@@ -1,3 +1,12 @@
+function createShapeData() {
+    return {
+        positions: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    }
+}
+
 function createNorthWall(x, y, z) {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
@@ -178,17 +187,6 @@ function createRoof(x, y, z) {
 
 
 
-function createCube(gl, x, y, z) {
-    shapes = [];
-    shapes.push(createShape(gl, createNorthWall(x, y, z)));
-    shapes.push(createShape(gl, createSouthWall(x, y, z)));
-    shapes.push(createShape(gl, createEastWall(x, y, z)));
-    shapes.push(createShape(gl, createWestWall(x, y, z)));
-    shapes.push(createShape(gl, createFloor(x, y, z)));
-    shapes.push(createShape(gl, createRoof(x, y, z)));
-    return shapes;
-}
-
 function createGround(gl, x, y, z) {
     shapes = [];
     shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
@@ -254,15 +252,18 @@ function createRoof(x, y, z) {
     return shapeData;
 }
 
-function createCube(gl, x, y, z) {
-    shapes = [];
-    shapes.push(createShape(gl, createNorthWall(x, y, z)));
-    shapes.push(createShape(gl, createSouthWall(x, y, z)));
-    shapes.push(createShape(gl, createEastWall(x, y, z)));
-    shapes.push(createShape(gl, createWestWall(x, y, z)));
-    shapes.push(createShape(gl, createFloor(x, y, z)));
-    shapes.push(createShape(gl, createRoof(x, y, z)));
-    return shapes;
+function createCube(gl, x, y, z, tex) {
+    var cube = {
+        shapes: [],
+        texture: tex
+    }
+    cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
+    cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
+    cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
+    cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
+    cube.shapes.push(createShape(gl, createFloor(x, y, z)));
+    cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+    return cube;
 }
 
 function createGround(gl, x, y, z) {
