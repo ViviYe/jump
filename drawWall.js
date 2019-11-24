@@ -193,7 +193,7 @@ function createGround(gl, x, y, z) {
     return shapes;
 }
 
-function createShpere(x, y, z) {
+function createShpere() {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
     // x, y, z are the center
@@ -264,6 +264,15 @@ function createCube(gl, x, y, z, tex) {
     cube.shapes.push(createShape(gl, createFloor(x, y, z)));
     cube.shapes.push(createShape(gl, createRoof(x, y, z)));
     return cube;
+}
+
+function createCharacter(gl, tex){
+    var character = {
+        shapes: [],
+        texture: tex
+    }
+    character.shapes.push(createShape(gl, createShpere()));
+    return character;
 }
 
 function createGround(gl, x, y, z) {

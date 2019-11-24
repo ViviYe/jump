@@ -419,14 +419,15 @@
 
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
+                character = createCharacter(gl, texturePink);
+                
             }
             reset();
-            var height = 0;
-
+            function drawCharacter(transmat, rotmat){
+            character.shapes.forEach(shape => drawShape(gl, shape, character.texture, transmat));
+            }
 
             var bouncing = false;
-
-
             function drawCube(transmat, dropmat) {
                 gl.clearColor(0.3, 0.7, 1.0, 1.0);
                 gl.clearDepth(1.0);
