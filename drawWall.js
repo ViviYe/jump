@@ -252,10 +252,10 @@ function createRoof(x, y, z) {
     return shapeData;
 }
 
-function createCube(gl, x, y, z) {
+function createCube(gl, x, y, z, tex) {
     var cube = {
         shapes: [],
-        texture: null
+        texture: tex
     }
     cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));

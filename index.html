@@ -120,11 +120,13 @@
                 trackingPoints = [];
             }
             var textureWood = createTexture(gl, queue.getResult("wood"));
+            var textureGreen = createTexture(gl, queue.getResult("green"));
+            var texturePink = createTexture(gl, queue.getResult("pink"));
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
             var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
-            cubetextures = [textureWood, textureWall];
+            cubetextures = [textureWall, textureGreen, texturePink];
           
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
@@ -194,7 +196,7 @@
                 projDist = e.originalEvent.wheelDelta;
                 return false;
             });
-            
+
             webglCanvas.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
                     mouse.mouseDragged = true;
@@ -307,7 +309,7 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-                new_cube = createCube(gl, 5, 5, 5);
+                new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
             }
             reset();
@@ -317,10 +319,10 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, textureWall, transmat)));
+                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
                 console.log(new_cube.shapes);
-                (new_cube.shapes).forEach(shape => drawShape(gl, shape, textureWall, dropmat));
+                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
 
                 if (height > -5) {
@@ -358,7 +360,7 @@
                     lastY -= dis;
                 } else randDirAndDist();
 
-                new_cube = createCube(gl, lastX, lastY, 5);
+                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 

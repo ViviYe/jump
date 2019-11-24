@@ -92,6 +92,8 @@ function startWebGL() {
     queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
     queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
     queue.loadManifest(["data/wood.jpg", { id: "wood", src: "data/wood.jpg" }]);
+    queue.loadManifest(["data/dogs.jpg", { id: "green", src: "data/green.jpg" }]);
+    queue.loadManifest(["data/pink.jpg", { id: "pink", src: "data/pink.jpg" }]);
     queue.on("complete", function (event) {
         runWebGL(queue);
     });
