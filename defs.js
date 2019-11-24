@@ -18,6 +18,7 @@ var zAxis = vec3.fromValues(0, 0, 1);
 
 //textrue
 var textures = [];
+var cubetextures = [];
 
 // controls for click and drag
 var moveShape = false;
@@ -81,3 +82,4 @@ var control = {
     fromPosition: [0, 1],
     toPosition: null
 };
+

@@ -119,11 +119,13 @@
                 window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
                 trackingPoints = [];
             }
-
+            var textureWood = createTexture(gl, queue.getResult("wood"));
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
             var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
+            cubetextures = [textureWood, textureWall];
+          
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -187,8 +189,12 @@
                 trackingPoints.push({ theta, phi, time });
             }
 
-
-
+            webglCanvas.bind('mousewheel', function (e) {
+                isScroll = true;
+                projDist = e.originalEvent.wheelDelta;
+                return false;
+            });
+            
             webglCanvas.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
                     mouse.mouseDragged = true;
@@ -311,9 +317,10 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureWall, transmat)));
+                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, textureWall, transmat)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
-                new_cube.forEach(shape => drawShape(gl, shape, textureWall, dropmat));
+                console.log(new_cube.shapes);
+                (new_cube.shapes).forEach(shape => drawShape(gl, shape, textureWall, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
 
                 if (height > -5) {
@@ -328,7 +335,7 @@
 
             function resetCubeMatrices() {
                 all_cubes.push(new_cube);
-                if (all_cubes.length >= 7) {
+                if (all_cubes.length >= 4) {
                     all_cubes.shift();
                     ground.shift();
 
