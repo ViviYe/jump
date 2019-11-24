@@ -442,7 +442,7 @@
                 //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
                 // }else 
                 if (height > -5) {
-                    height = height - 0.008;
+                    height = height - 0.01;
                     if (height <= -5)
                         bouncing = true;
                     var drop = vec3.create();
@@ -453,23 +453,23 @@
                 } 
             }
             var decelRate = 0.99;
-            var decelRate2 = 0.4;
-            var maxHeight = 0.7;
+            var decelRate2 = 0.0015;
+            var maxHeight = 0.4;
             var dropping = false;
             var eps = 0.01;
 
             function bounce(transmat, dropmat){
                 drawCube(transmat, dropmat);
-                if (maxHeight < 0.08) {
+                if (maxHeight < 0.1) {
                     bouncing = false;
                     return;
                 }
                 if (!dropping) {
-                    height += (0.008 * decelRate2);
+                    height += decelRate2;
                     dropping = height >= maxHeight - 5;
                     maxHeight *= decelRate;
                 }else {
-                    height -= (0.008 * decelRate2);
+                    height -= decelRate2;
                     dropping = height > - 5;
                 }
                 var drop = vec3.create();
