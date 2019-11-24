@@ -165,7 +165,7 @@
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
             var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
             cubetextures = [textureWall, textureGreen, texturePink];
-          
+
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -359,6 +359,8 @@
                             0.0
                         )
                     }
+                } else if (event.key == "Shift"){
+                    console.log("shift");
                 }
                 return false;
             });
@@ -421,7 +423,7 @@
             reset();
             var height = 0;
 
-            
+
             var bouncing = false;
 
 
@@ -436,7 +438,7 @@
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
             }
 
-            function dropCube(transmat, dropmat){
+            function dropCube(transmat, dropmat) {
                 drawCube(transmat, dropmat);
                 // if (bouncing) {
                 //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
@@ -450,7 +452,7 @@
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     transform_matrix_2 = droptranslation;
                     window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
-                } 
+                }
             }
             var decelRate = 0.99;
             var decelRate2 = 0.0015;
@@ -458,7 +460,7 @@
             var dropping = false;
             var eps = 0.01;
 
-            function bounce(transmat, dropmat){
+            function bounce(transmat, dropmat) {
                 drawCube(transmat, dropmat);
                 if (maxHeight < 0.1) {
                     bouncing = false;
@@ -468,7 +470,7 @@
                     height += decelRate2;
                     dropping = height >= maxHeight - 5;
                     maxHeight *= decelRate;
-                }else {
+                } else {
                     height -= decelRate2;
                     dropping = height > - 5;
                 }
@@ -527,25 +529,25 @@
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
 
-                    control.mode = IS_MOVING;
-                    control.fromPosition = vec3.fromValues(
-                        currentX + 0.5,
-                        currentY + 0.5,
-                        0.0
-                    );
-                    direction = vec3.fromValues(
-                        dx,
-                        dy,
-                        0.0
-                    );
-                    control.toPosition = vec3.fromValues(
-                        targetPos[0] + 0.5,
-                        targetPos[1] + 0.5,
-                        0.0
-                    )
-                    
-            // dropCube(transform_matrix_1, transform_matrix_2);
-                
+                control.mode = IS_MOVING;
+                control.fromPosition = vec3.fromValues(
+                    currentX + 0.5,
+                    currentY + 0.5,
+                    0.0
+                );
+                direction = vec3.fromValues(
+                    dx,
+                    dy,
+                    0.0
+                );
+                control.toPosition = vec3.fromValues(
+                    targetPos[0] + 0.5,
+                    targetPos[1] + 0.5,
+                    0.0
+                )
+
+                // dropCube(transform_matrix_1, transform_matrix_2);
+
             });
 
 
@@ -614,10 +616,10 @@
                         }
                     }
                 }
-                if (bouncing){
-                    window.requestAnimationFrame(()=> bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
-                }else{
-                window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                if (bouncing) {
+                    window.requestAnimationFrame(() => bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                } else {
+                    window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
                 window.requestAnimationFrame(updateWebGL);
             }
