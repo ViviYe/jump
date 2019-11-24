@@ -19,6 +19,7 @@ var zAxis = vec3.fromValues(0, 0, 1);
 //textrue
 var textures = [];
 
+// controls for click and drag
 var moveShape = false;
 var initShapePos = [0, 0];
 
@@ -35,12 +36,12 @@ var mouse = {
     mouseDown: false,
     mouseDragged: false,
 }
-
 var prevMouseDown = false;
 
-
+//init height when drop a cube
 var height = 0;
 
+//matrices init
 var transform_matrix_1 = mat4.create();
 var transform_matrix_2 = mat4.create();
 var transform_matrix_3 = mat4.create();
@@ -51,11 +52,6 @@ var new_cube = [];
 var ground = [];
 var new_ground = [];
 
-var height = 0;
-
-var transform_matrix_1 = mat4.create();
-var transform_matrix_2 = mat4.create();
-var transform_matrix_3 = mat4.create();
 
 // init the first block
 var dir = 0;
