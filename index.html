@@ -861,9 +861,9 @@
                 dy = Math.round(Math.sin(dir * Math.PI / 2));
                 var targetPos;
                 if (dir == 0)
-                    targetPos = [currentX + dx * 2, currentY + dy];
+                    targetPos = [currentX + dx + 1.5, currentY + dy];
                 if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy * 2];
+                    targetPos = [currentX + dx, currentY + dy + 1];
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 1.5];
 
