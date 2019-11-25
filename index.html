@@ -91,28 +91,33 @@
         $("#updateMazeButton").click(updateMaze);
 
 
-    var characterheight = 0;
-    var drop_character = mat4.create();
-    var transform_character = mat4.create();
-    var rotate_character = mat4.create();
-    var init = true;
-    
+        var characterheight = 0;
+        var drop_character = mat4.create();
+        var transform_character = mat4.create();
+        var rotate_character = mat4.create();
+        var init = true;
 
-    function startWebGL() {
-    var queue = new createjs.LoadQueue(true);
 
-    queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
-    queue.loadManifest(["data/black.jpg", { id: "black", src: "data/black.jpg" }]);
-    queue.loadManifest(["data/grey.jpg", { id: "floor", src: "data/grey.jpg" }]);
-    queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
-    queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
-    queue.loadManifest(["data/wood.jpg", { id: "wood", src: "data/wood.jpg" }]);
-    queue.loadManifest(["data/dogs.jpg", { id: "green", src: "data/green.jpg" }]);
-    queue.loadManifest(["data/pink.jpg", { id: "pink", src: "data/pink.jpg" }]);
-    queue.on("complete", function (event) {
-        runWebGL(queue);
-    });
-}
+        function startWebGL() {
+            var queue = new createjs.LoadQueue(true);
+
+            // character texture
+            queue.loadManifest(["data/dark-blue.jpeg", { id: "character", src: "data/dark-blue.jpeg" }]);
+
+            // floor texture
+            queue.loadManifest(["data/light-grey.jpeg", { id: "floor", src: "data/light-grey.jpeg" }]);
+
+            // cube textures
+            queue.loadManifest(["data/blue-grey.jpeg", { id: "blue-grey", src: "data/blue-grey.jpeg" }]);
+            queue.loadManifest(["data/skin.jpeg", { id: "skin", src: "data/skin.jpeg" }]);
+            queue.loadManifest(["data/light-salmon.jpeg", { id: "light-salmon", src: "data/light-salmon.jpeg" }]);
+            queue.loadManifest(["data/aqua.jpeg", { id: "aqua", src: "data/aqua.jpeg" }]);
+            queue.loadManifest(["data/peach.jpeg", { id: "peach", src: "data/peach.jpeg" }]);
+
+            queue.on("complete", function (event) {
+                runWebGL(queue);
+            });
+        }
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
             var NO_CONTROL = 0;
@@ -148,7 +153,7 @@
                 thetaShift += decelTheta;
                 phiShift += decelPhi;
                 control.currentHeading += (thetaShift / 80) * (getFov() / 2);
-                control.zHeading -= (phiShift / 80) * (getFov() / 2);
+                control.zHeading += (phiShift / 80) * (getFov() / 2);
                 curTheta += thetaShift;
                 curPhi = phiShift + curPhi > 1.57 ? 1.57 : phiShift + curPhi;
                 curPhi = curPhi < -1.57 ? -1.57 : curPhi;
@@ -182,15 +187,17 @@
                 trackingPoints = [];
             }
 
-            var textureWood = createTexture(gl, queue.getResult("wood"));
-            var textureGreen = createTexture(gl, queue.getResult("green"));
-            var texturePink = createTexture(gl, queue.getResult("pink"));
-            var textureBlack = createTexture(gl, queue.getResult("black"));
-            var textureWall = createTexture(gl, queue.getResult("wall"));
+            var textureCharacter = createTexture(gl, queue.getResult("character"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
-            var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
-            var texturePatrickStar = createTexture(gl, queue.getResult("patrick-star"));
-            cubetextures = [textureWall, textureGreen, texturePink];
+
+
+
+            var textureBlueGrey = createTexture(gl, queue.getResult("blue-grey"));
+            var textureSkin = createTexture(gl, queue.getResult("skin"));
+            var textureLightSalmon = createTexture(gl, queue.getResult("light-salmon"));
+            var textureAqua = createTexture(gl, queue.getResult("aqua"));
+            var texturePeach = createTexture(gl, queue.getResult("peach"));
+            cubetextures = [textureBlueGrey, textureSkin, textureAqua, texturePeach];
 
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
@@ -317,9 +324,9 @@
 
 
             webglCanvas.keydown(function (event) {
-                
-               if (event.key == "ArrowDown") {
-                    
+
+                if (event.key == "ArrowDown") {
+
                 }
                 return false;
             });
@@ -378,12 +385,12 @@
 
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
-                character = createCharacter(gl, textureBlack);
+                character = createCharacter(gl, textureCharacter);
 
             }
             reset();
 
-            function dropOnce(transmat, dropmat){
+            function dropOnce(transmat, dropmat) {
                 var tot = mat4.create();
                 mat4.multiply(tot, transmat, dropmat);
                 character.shapes.forEach(shape => drawShape(gl, shape, character.texture, tot));
@@ -393,13 +400,13 @@
                     vec3.set(drop, 0, 0, characterheight);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
                     drop_character = droptranslation;
-                    window.requestAnimationFrame(() => dropOnce(transmat, droptranslation));         
+                    window.requestAnimationFrame(() => dropOnce(transmat, droptranslation));
                 }
             }
 
             var bouncing = false;
             function drawCube(transmat, dropmat) {
-                gl.clearColor(0.3, 0.7, 1.0, 1.0);
+                gl.clearColor(1.0, 1.0, 1.0, 1.0);
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
@@ -488,9 +495,9 @@
                 } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
                     dir = 1;
                     lastY += dis;
-                // } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
-                //     dir = 3;
-                //     lastY -= dis;
+                    // } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
+                    //     dir = 3;
+                    //     lastY -= dis;
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
@@ -603,10 +610,10 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-               // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
-               
+                // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
+
                 dropOnce(transform_character, drop_character);
-                          
+
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
