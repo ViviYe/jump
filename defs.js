@@ -47,8 +47,9 @@ var transform_matrix_1 = mat4.create();
 var transform_matrix_2 = mat4.create();
 var transform_matrix_3 = mat4.create();
 
-
-
+// var compress_time;
+// var release_time;
+// var prevShiftDown = false;
 
 var characterheight = 0;
 var all_cubes = [];

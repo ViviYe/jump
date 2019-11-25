@@ -384,13 +384,29 @@
                 }
             });
 
+            var compress_time;
+            var release_time;
+            var prevShiftDown = false;
 
             webglCanvas.keydown(function (event) {
 
-                if (event.key == "ArrowDown") {
-
+                if (event.key == "Shift") {
+                    if (!prevShiftDown){
+                        compress_time = Date.now();
+                        prevShiftDown = true;
+                    }
                 }
                 return false;
+            });
+
+            webglCanvas.keyup(function (event) {
+                if (event.key == "Shift") {
+                    prevShiftDown = false;
+                    release_time = Date.now();
+                    console.log(release_time - compress_time);
+                }
+                return false;
+
             });
 
             function drawShape(gl, shape, texture, transmat) {
@@ -535,6 +551,7 @@
             //     }
             // }
 
+            
             function resetCubeMatrices() {
                 init = false;
                 all_cubes.push(new_cube);
@@ -579,7 +596,7 @@
                 if (dir == 0)
                     targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
                 if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy + 0.45 * dis];
+                    targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
 
