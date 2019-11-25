@@ -161,33 +161,6 @@ function createBigFloor(x, y, z, delta) {
     return shapeData;
 }
 
-function createRoof(x, y, z) {
-    var shapeData = createShapeData();
-    var v = shapeData.positions.length / 3;
-
-    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
-    var i;
-    for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 0.0, -1.0]);
-    }
-
-    shapeData.positions.push(x, y, z + 1);
-    shapeData.texCoords.push(1.0, 1.0);
-
-    shapeData.positions.push(x, y + 1, z + 1);
-    shapeData.texCoords.push(0.0, 0.0);
-
-    shapeData.positions.push(x + 1, y + 1, z + 1);
-    shapeData.texCoords.push(0.0, 1.0);
-
-    shapeData.positions.push(x + 1, y, z + 1);
-    shapeData.texCoords.push(0.0, 1.0);
-
-    return shapeData;
-}
-
-
 
 function createGround(gl, x, y, z) {
     shapes = [];
@@ -282,15 +255,42 @@ function createRoof(x, y, z) {
     shapeData.positions.push(x, y + 1, z + 1);
     shapeData.texCoords.push(1.0, 0.0);
 
+    return shapeData;
+}
 
+function createShadow(x, y, z){
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push([0.0, 0.0, -1.0]);
+    }
+
+    shapeData.positions.push(x-0.2, y-0.2, z+0.01 );
+    shapeData.texCoords.push(0.0, 0.0);
+   
+    shapeData.positions.push(x + 0.8, y-0.2, z+0.01 );
+    shapeData.texCoords.push(0.0, 1.0);
+
+    shapeData.positions.push(x + 1, y , z+0.01);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x, y + 1, z+0.01);
+    shapeData.texCoords.push(1.0, 0.0);
 
     return shapeData;
+
+
+
 }
 
 function createCube(gl, x, y, z, tex) {
     var cube = {
         shapes: [],
-        texture: tex
+        texture: tex,
+        shadow: []
     }
     cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
@@ -298,6 +298,7 @@ function createCube(gl, x, y, z, tex) {
     cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
     cube.shapes.push(createShape(gl, createFloor(x, y, z)));
     cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+    cube.shadow.push(createShape(gl, createShadow(x, y, z)));
     return cube;
 }
 

@@ -164,7 +164,7 @@
 
             // floor texture
             queue.loadManifest(["data/light-grey.jpeg", { id: "floor", src: "data/light-grey.jpeg" }]);
-
+            queue.loadManifest(["data/black.jpg", { id: "shadow", src: "data/black.jpg" }]);
             // cube textures
             queue.loadManifest(["data/blue-grey.jpeg", { id: "blue-grey", src: "data/blue-grey.jpeg" }]);
             queue.loadManifest(["data/skin.jpeg", { id: "skin", src: "data/skin.jpeg" }]);
@@ -247,6 +247,7 @@
 
             var textureCharacter = createTexture(gl, queue.getResult("character"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
+            var textureShadow = createTexture(gl, queue.getResult("shadow"));
 
 
 
@@ -472,8 +473,10 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat)));
+                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
+                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat));
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
             }
 
