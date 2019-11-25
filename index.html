@@ -88,6 +88,14 @@
         updateMaze();
         $("#updateMazeButton").click(updateMaze);
 
+
+    var characterheight = 0;
+    var drop_character = mat4.create();
+    var transform_character = mat4.create();
+    var rotate_character = mat4.create();
+    var init = true;
+
+
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
             var NO_CONTROL = 0;
@@ -420,11 +428,20 @@
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
                 character = createCharacter(gl, texturePink);
-                
+
             }
             reset();
-            function drawCharacter(transmat, rotmat){
-            character.shapes.forEach(shape => drawShape(gl, shape, character.texture, transmat));
+
+            function dropOnce(transmat, dropmat){
+                character.shapes.forEach(shape => drawShape(gl, shape, character.texture, dropmat));
+                if (characterheight > -13) {
+                    characterheight = characterheight - 0.008;
+                    var drop = vec3.create();
+                    vec3.set(drop, 0, 0, characterheight);
+                    var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                    drop_character = droptranslation;
+                    window.requestAnimationFrame(() => dropOnce(transmat, droptranslation));         
+                }
             }
 
             var bouncing = false;
@@ -441,9 +458,6 @@
 
             function dropCube(transmat, dropmat) {
                 drawCube(transmat, dropmat);
-                // if (bouncing) {
-                //     window.requestAnimationFrame(() =>bounce(transmat, dropmat));
-                // }else 
                 if (height > -5) {
                     height = height - 0.01;
                     if (height <= -5)
@@ -483,7 +497,22 @@
             }
 
 
+
+            // function dropCharacter(transmat, dropmat) {
+            //     drawCharacter(transmat, dropmat);
+            //     if (characterheight > -5) {
+            //         console.log(characterheight)
+            //         characterheight = characterheight - 0.01;
+            //         var drop = vec3.create();
+            //         vec3.set(drop, 0, 0, characterheight);
+            //         var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+            //         // drop_character = transform_character;
+            //         window.requestAnimationFrame(() => dropCharacter(transmat, droptranslation));
+            //     }
+            // }
+
             function resetCubeMatrices() {
+                init = false;
                 all_cubes.push(new_cube);
                 if (all_cubes.length >= 7) {
                     all_cubes.shift();
@@ -500,15 +529,15 @@
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
-                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3 || dir == 3 && randDir == 1) {
+                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3) {
                     dir = 0;
                     lastX += dis;
                 } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
                     dir = 1;
                     lastY += dis;
-                } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
-                    dir = 3;
-                    lastY -= dis;
+                // } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
+                //     dir = 3;
+                //     lastY -= dis;
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
@@ -524,11 +553,11 @@
                 dy = Math.round(Math.sin(dir * Math.PI / 2));
                 var targetPos;
                 if (dir == 0)
-                    targetPos = [currentX + dx + 0.4 * dis, currentY + dy];
+                    targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
                 if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy + 0.4 * dis];
+                    targetPos = [currentX + dx, currentY + dy + 0.45 * dis];
                 if (dir == 3)
-                    targetPos = [currentX + dx, currentY + dy - 0.4 * dis];
+                    targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
 
                 control.mode = IS_MOVING;
                 control.fromPosition = vec3.fromValues(
@@ -547,9 +576,8 @@
                     0.0
                 )
 
-                // dropCube(transform_matrix_1, transform_matrix_2);
-
             });
+
 
 
             function updateWebGL() {
@@ -622,6 +650,11 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
+               // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
+               
+                window.requestAnimationFrame(()=> dropOnce(transform_character, drop_character));
+            
+                
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
