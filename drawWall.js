@@ -273,6 +273,9 @@ function createRoof(x, y, z) {
 
     shapeData.positions.push(x, y, z + 1);
     shapeData.texCoords.push(0.0, 0.0);
+   
+    shapeData.positions.push(x + 1, y, z + 1);
+    shapeData.texCoords.push(0.0, 1.0);
 
     shapeData.positions.push(x + 1, y + 1, z + 1);
     shapeData.texCoords.push(1.0, 1.0);
@@ -280,8 +283,7 @@ function createRoof(x, y, z) {
     shapeData.positions.push(x, y + 1, z + 1);
     shapeData.texCoords.push(1.0, 0.0);
 
-    shapeData.positions.push(x + 1, y, z + 1);
-    shapeData.texCoords.push(0.0, 1.0);
+   
 
     return shapeData;
 }
@@ -291,12 +293,13 @@ function createCube(gl, x, y, z, tex) {
         shapes: [],
         texture: tex
     }
+    console.log("ha?");
     cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
     cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
     cube.shapes.push(createShape(gl, createFloor(x, y, z)));
-    cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+   cube.shapes.push(createShape(gl, createRoof(x, y, z)));
     return cube;
 }
 
