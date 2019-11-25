@@ -301,12 +301,11 @@
             });
 
             webglCanvas.mousedown(function (event) {
-                e.preventDefault();
                 if (event.button == 0) {
                     mouse.mouseDown = true;
                     mouse.mouseDragged = false;
                 }
-            }, false)
+            })
 
             $(document).mouseup(function (event) {
                 if (event.button == 0) {
