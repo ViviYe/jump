@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>CS 4621: PPA3 -- Maze Crawler</title>
+    <title>ジャンプ</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -25,7 +25,9 @@
 
 <body>
     <div class="container">
-        <h1>CS 4621 PPA3 <span class="subtitle">Maze Crawler</span></h1>
+        <center>
+            <h1>ジャンプ<span class="subtitle"></span></h1>
+        </center>
 
         <div align="center">
             <canvas tabindex="1" id="webglCanvas" style="border: none; background-color: black;" width="800"
@@ -299,11 +301,12 @@
             });
 
             webglCanvas.mousedown(function (event) {
+                e.preventDefault();
                 if (event.button == 0) {
                     mouse.mouseDown = true;
                     mouse.mouseDragged = false;
                 }
-            })
+            }, false)
 
             $(document).mouseup(function (event) {
                 if (event.button == 0) {
