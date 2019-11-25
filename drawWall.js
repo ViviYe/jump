@@ -85,7 +85,6 @@ function createWestWall(x, y, z) {
 
 
 function createEastWall(x, y, z) {
-    console.log(v);
     var shapeData = createShapeData();
     var v = 0;
     shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -165,7 +164,7 @@ function createBigFloor(x, y, z, delta) {
 function createRoof(x, y, z) {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
-  
+
     shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
 
     var i;
@@ -213,9 +212,9 @@ function createShpere(x, y, z, r) {
             ai = i * 2 * Math.PI / SPHERE_DIV;
             si = Math.sin(ai);
             ci = Math.cos(ai);
-            shapeData.positions.push((si * sj)*r + x, cj*r+y, (ci * sj)*r + z);
+            shapeData.positions.push((si * sj) * r + x, cj * r + y, (ci * sj) * r + z);
             shapeData.normals.push(si * sj, cj, ci * sj);
-            shapeData.texCoords.push(Math.atan((cj*r)/si * sj), Math.acos(ci * sj));
+            shapeData.texCoords.push(Math.atan((cj * r) / si * sj), Math.acos(ci * sj));
         }
     }
     for (j = 0; j < SPHERE_DIV; j++) {
@@ -231,30 +230,30 @@ function createShpere(x, y, z, r) {
 
 
 
-function createCylinder(x, y, z, h, r){
+function createCylinder(x, y, z, h, r) {
     var div = 0.75;
     var shapeData = createShapeData();
     var CYLINDER_DIV = 30;
-    for (i = 0; i< CYLINDER_DIV; i++){
-        aj = 2* i * Math.PI / (CYLINDER_DIV -1);
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
         sj = Math.sin(aj);
         cj = Math.cos(aj);
-        shapeData.positions.push(sj*r+x, cj*r+y, z);
+        shapeData.positions.push(sj * r + x, cj * r + y, z);
         shapeData.normals.push(sj, cj, z);
         shapeData.texCoords.push(aj, z);
     }
-    for (i = 0; i< CYLINDER_DIV; i++){
-        aj = 2* i * Math.PI / (CYLINDER_DIV -1);
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
         sj = Math.sin(aj);
         cj = Math.cos(aj);
-        shapeData.positions.push(sj*r*div+x, cj*r*div+y, z+h);
-        shapeData.normals.push(sj, cj, z+h);
-        shapeData.texCoords.push(aj, z+h);
+        shapeData.positions.push(sj * r * div + x, cj * r * div + y, z + h);
+        shapeData.normals.push(sj, cj, z + h);
+        shapeData.texCoords.push(aj, z + h);
     }
-    for (j = 0; j< CYLINDER_DIV; j++){
+    for (j = 0; j < CYLINDER_DIV; j++) {
         var cur = j;
-        var curshift = (j+1) % CYLINDER_DIV;
-        var next =  cur + CYLINDER_DIV;
+        var curshift = (j + 1) % CYLINDER_DIV;
+        var next = cur + CYLINDER_DIV;
         var nextshift = curshift + CYLINDER_DIV;
         shapeData.indices.push(cur, curshift, next, next, curshift, nextshift);
     }
@@ -273,7 +272,7 @@ function createRoof(x, y, z) {
 
     shapeData.positions.push(x, y, z + 1);
     shapeData.texCoords.push(0.0, 0.0);
-   
+
     shapeData.positions.push(x + 1, y, z + 1);
     shapeData.texCoords.push(0.0, 1.0);
 
@@ -283,7 +282,7 @@ function createRoof(x, y, z) {
     shapeData.positions.push(x, y + 1, z + 1);
     shapeData.texCoords.push(1.0, 0.0);
 
-   
+
 
     return shapeData;
 }
@@ -293,17 +292,16 @@ function createCube(gl, x, y, z, tex) {
         shapes: [],
         texture: tex
     }
-    console.log("ha?");
     cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
     cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
     cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
     cube.shapes.push(createShape(gl, createFloor(x, y, z)));
-   cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+    cube.shapes.push(createShape(gl, createRoof(x, y, z)));
     return cube;
 }
 
-function createCharacter(gl, tex){
+function createCharacter(gl, tex) {
     var character = {
         shapes: [],
         texture: tex

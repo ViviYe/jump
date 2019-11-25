@@ -49,6 +49,7 @@
     <script id="vertexShader0" type="x-shader/x-vertex">
        attribute vec3 vert_position;
        attribute vec2 vert_texCoord;
+       attribute vec3 vert_normal;
        varying vec2 geom_texCoord;
 
         uniform mat4 xform_projMat;
@@ -210,6 +211,7 @@
             program0.xform_normalMat = gl.getUniformLocation(program0, "xform_normalMat");
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
+            program0.vert_normal = gl.getAttribLocation(program0, "vert_normal");
             var lastTime = performance.now();
 
             program0.draw = function (gl, shape, initialize) {
@@ -220,6 +222,8 @@
                 gl.vertexAttribPointer(program0.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
                 gl.enableVertexAttribArray(program0.vert_texCoord);
                 gl.vertexAttribPointer(program0.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
+                gl.enableVertexAttribArray(program0.vert_normal);
+                gl.vertexAttribPointer(program0.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
                 gl.bindBuffer(gl.ARRAY_BUFFER, null);
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
                 gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
