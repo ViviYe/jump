@@ -174,13 +174,13 @@ function createRoof(x, y, z) {
     }
 
     shapeData.positions.push(x, y, z + 1);
-    shapeData.texCoords.push(0.0, 0.0);
-
-    shapeData.positions.push(x + 1, y + 1, z + 1);
     shapeData.texCoords.push(1.0, 1.0);
 
     shapeData.positions.push(x, y + 1, z + 1);
-    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x + 1, y + 1, z + 1);
+    shapeData.texCoords.push(0.0, 1.0);
 
     shapeData.positions.push(x + 1, y, z + 1);
     shapeData.texCoords.push(0.0, 1.0);
@@ -305,7 +305,7 @@ function createCharacter(gl, tex){
         shapes: [],
         texture: tex
     }
-    character.shapes.push(createShape(gl, createShpere(5.5, 5.5, 15, 0.2)));
+    character.shapes.push(createShape(gl, createShpere(5.5, 5.5, 15, 0.15)));
     character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
     return character;
 }

@@ -54,6 +54,8 @@
         uniform mat4 xform_modelMat;
         uniform mat4 transform_Mat;
         uniform mat4 xform_normalMat;
+        uniform mat4 xform_rotMat;
+        uniform mat4 xform_scaleMat;
    
         void main() {
             // TODO: Multiply by P*V*M
@@ -95,7 +97,21 @@
     var rotate_character = mat4.create();
     var init = true;
 
+    function startWebGL() {
+    var queue = new createjs.LoadQueue(true);
 
+    queue.loadManifest(["data/blue.jpg", { id: "wall", src: "data/blue.jpg" }]);
+    queue.loadManifest(["data/black.jpg", { id: "black", src: "data/black.jpg" }]);
+    queue.loadManifest(["data/grey.jpg", { id: "floor", src: "data/grey.jpg" }]);
+    queue.loadManifest(["data/sponge-bob.png", { id: "sponge-bob", src: "data/sponge-bob.png" }]);
+    queue.loadManifest(["data/patrick-star.png", { id: "patrick-star", src: "data/patrick-star.png" }]);
+    queue.loadManifest(["data/wood.jpg", { id: "wood", src: "data/wood.jpg" }]);
+    queue.loadManifest(["data/dogs.jpg", { id: "green", src: "data/green.jpg" }]);
+    queue.loadManifest(["data/pink.jpg", { id: "pink", src: "data/pink.jpg" }]);
+    queue.on("complete", function (event) {
+        runWebGL(queue);
+    });
+}
         function runWebGL(queue) {
             var gl = initializeWebGL($("#webglCanvas"));
             var NO_CONTROL = 0;
@@ -168,6 +184,7 @@
             var textureWood = createTexture(gl, queue.getResult("wood"));
             var textureGreen = createTexture(gl, queue.getResult("green"));
             var texturePink = createTexture(gl, queue.getResult("pink"));
+            var textureBlack = createTexture(gl, queue.getResult("black"));
             var textureWall = createTexture(gl, queue.getResult("wall"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureSpongeBob = createTexture(gl, queue.getResult("sponge-bob"));
@@ -299,76 +316,9 @@
 
 
             webglCanvas.keydown(function (event) {
-                var currentMultiple;
-                var currentX, currentY;
-                var dx, dy;
-                var direction;
-                if (event.key == "ArrowLeft") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple + 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowRight") {
-                    if (control.mode == NO_CONTROL) {
-                        control.mode = IS_ROTATING;
-                        currentMultiple = Math.round(control.currentHeading / (Math.PI / 2.0));
-                        control.fromHeading = currentMultiple * Math.PI / 2.0;
-                        control.toHeading = (currentMultiple - 1) * Math.PI / 2.0;
-                    }
-                } else if (event.key == "ArrowUp") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = Math.round(Math.cos(control.currentHeading));
-                        dy = Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
-                }
-                else if (event.key == "ArrowDown") {
-                    if (control.mode == NO_CONTROL) {
-                        currentX = Math.round(control.currentPosition[0] - 0.5);
-                        currentY = Math.round(control.currentPosition[1] - 0.5);
-                        dx = -Math.round(Math.cos(control.currentHeading));
-                        dy = -Math.round(Math.sin(control.currentHeading));
-                        var targetPos = [currentX + dx, currentY + dy];
-                        control.mode = IS_MOVING;
-                        control.fromPosition = vec3.fromValues(
-                            currentX + 0.5,
-                            currentY + 0.5,
-                            0.0
-                        );
-                        direction = vec3.fromValues(
-                            dx,
-                            dy,
-                            0.0
-                        );
-                        control.toPosition = vec3.fromValues(
-                            targetPos[0] + 0.5,
-                            targetPos[1] + 0.5,
-                            0.0
-                        )
-                    }
-                } else if (event.key == "Shift"){
-                    console.log("shift");
+                
+               if (event.key == "ArrowDown") {
+                    
                 }
                 return false;
             });
@@ -427,13 +377,15 @@
 
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
-                character = createCharacter(gl, texturePink);
+                character = createCharacter(gl, textureBlack);
 
             }
             reset();
 
             function dropOnce(transmat, dropmat){
-                character.shapes.forEach(shape => drawShape(gl, shape, character.texture, dropmat));
+                var tot = mat4.create();
+                mat4.multiply(tot, transmat, dropmat);
+                character.shapes.forEach(shape => drawShape(gl, shape, character.texture, tot));
                 if (characterheight > -13) {
                     characterheight = characterheight - 0.008;
                     var drop = vec3.create();
@@ -652,9 +604,8 @@
                 }
                // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
                
-                window.requestAnimationFrame(()=> dropOnce(transform_character, drop_character));
-            
-                
+                dropOnce(transform_character, drop_character);
+                          
                 window.requestAnimationFrame(updateWebGL);
             }
             window.requestAnimationFrame(updateWebGL);
