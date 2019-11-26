@@ -51,9 +51,12 @@
         attribute vec3 vert_position;
         attribute vec2 vert_texCoord;
         attribute vec3 vert_normal;
+
         varying vec2 vUv;
         varying vec3 vNormal; // normal at the vertex in eye space
         varying vec4 vPosition; // vertex position in eye space
+        varying vec3 vertPos;
+
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
@@ -61,10 +64,7 @@
         uniform mat4 xform_normalMat;
         uniform mat4 xform_rotMat;
         uniform mat4 xform_scaleMat;
-        varying vec3 vertPos;
-
-        uniform float isSphere;
-
+        uniform float isCharacter;
    
         void main() {
             // Calculate point in eye space
@@ -72,10 +72,10 @@
     
             vec4 vertPos4 = xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
             vertPos = vec3(vertPos4) / vertPos4.w;
+
             // Calculate projected point 
             gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (transform_Mat * (vec4(vert_position, 1.0)))));
-            // We have to use the inverse transpose of the modelview matrix for the normal
-            // vNormal = normalize((xform_normalMat * vec4(vert_normal, 1.0)).xyz);
+
             vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
         }
@@ -86,58 +86,40 @@
         varying vec2 vUv;
         varying vec3 vNormal; // fragment normal in eye space
         varying vec4 vPosition; // fragment position in eye space
-
-        uniform float isSphere;
-
         varying vec3 vertPos;
+
         uniform sampler2D texture;
-        vec3 to_sRGB(vec3 c) { return pow(c, vec3(1.0/2.2)); }
-        vec3 from_sRGB(vec3 c) { return pow(c, vec3(2.2)); }
+        uniform float isCharacter;
+
         void main() {
-            
             float shininessVal = 100.0;
+
             vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
-            float exposure = 1.0;
-            float roughness = 1.0;
+
             vec3 N = normalize(vNormal);
-            // vec3 V = normalize(-vertPos.xyz);
-            vec3 finalColor = vec3(0.0, 0.0, 0.0);
-            float r = 1.0;
-            // length(lightPos - vPosition.xyz);
             vec3 L = normalize(lightPos - vertPos);
             vec3 V = normalize(-vertPos);
             vec3 H = normalize(L + V);
-            // Calculate diffuse term 
+         
             float lambertian = max(dot(N, L), 0.0);
             float specular = 0.0;
             if (lambertian > 0.0) {
                 vec3 R = reflect(-L, N);
                 float specAngle = max(dot(R, V), 0.0);
                 specular = pow(specAngle, shininessVal);
+            }
 
-            }
-            vec3 Idiff = (texture2D(texture, vUv).xyz) * max(dot(N, L), 0.0);
-            if (max(dot(N, L), 0.0) == 0.0) {
-                Idiff = vec3(1.0, 1.0, 1.0);
-            }
-        
-            // Calculate specular term
-            // vec3 Ispec = vec3(1.0) * pow(max(dot(N, H), 0.0), 1.0 / roughness);
-            // finalColor += lightColor * (Idiff + Ispec) / (r*r);
-            finalColor += lightColor * (Idiff) / (r*r);
-            vec4 c = texture2D(texture, vUv);
-            if (isSphere == 1.0) {
+            if (isCharacter == 1.0) {
                 gl_FragColor = 2.0 * vec4((texture2D(texture, vUv).xyz) * lambertian + (texture2D(texture, vUv).xyz) * specular, 1.0); 
             } else {
-                gl_FragColor = c;
+                gl_FragColor = texture2D(texture, vUv);
             }
         }
     </script>
 
 
     <script>
-
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -146,7 +128,6 @@
         }
         updateMaze();
         $("#updateMazeButton").click(updateMaze);
-
 
         var characterheight = 0;
         var drop_character = mat4.create();
@@ -265,7 +246,7 @@
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             program0.vert_normal = gl.getAttribLocation(program0, "vert_normal");
-            program0.isSphere = gl.getUniformLocation(program0, "isSphere");
+            program0.isCharacter = gl.getUniformLocation(program0, "isCharacter");
             var lastTime = performance.now();
 
             program0.draw = function (gl, shape, initialize) {
@@ -407,7 +388,7 @@
 
             });
 
-            function drawShape(gl, shape, texture, transmat, isSphere) {
+            function drawShape(gl, shape, texture, transmat, isCharacter) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
                         gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
@@ -435,11 +416,11 @@
                         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                         gl.uniform1i(program0.texture, 0);
                     }
-                    if (program0.isSphere != null) {
-                        if (isSphere) {
-                            gl.uniform1f(program0.isSphere, 1.0);
+                    if (program0.isCharacter != null) {
+                        if (isCharacter) {
+                            gl.uniform1f(program0.isCharacter, 1.0);
                         } else {
-                            gl.uniform1f(program0.isSphere, 0.0);
+                            gl.uniform1f(program0.isCharacter, 0.0);
                         }
                     }
                 });
