@@ -168,7 +168,7 @@ function createGround(gl, x, y, z) {
     return shapes;
 }
 
-function createShpere(x, y, z, r) {
+function createSphere(x, y, z, r) {
     // x, y, z are the center
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
@@ -258,7 +258,7 @@ function createRoof(x, y, z) {
     return shapeData;
 }
 
-function createShadow(x, y, z){
+function createShadow(x, y, z) {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
     shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
@@ -268,16 +268,16 @@ function createShadow(x, y, z){
         shapeData.normals.push([0.0, 0.0, -1.0]);
     }
 
-    shapeData.positions.push(x-0.2, y-0.2, z+0.01 );
+    shapeData.positions.push(x - 0.2, y - 0.2, z + 0.01);
     shapeData.texCoords.push(0.0, 0.0);
-   
-    shapeData.positions.push(x + 0.8, y-0.2, z+0.01 );
+
+    shapeData.positions.push(x + 0.8, y - 0.2, z + 0.01);
     shapeData.texCoords.push(0.0, 1.0);
 
-    shapeData.positions.push(x + 1, y , z+0.01);
+    shapeData.positions.push(x + 1, y, z + 0.01);
     shapeData.texCoords.push(1.0, 1.0);
 
-    shapeData.positions.push(x, y + 1, z+0.01);
+    shapeData.positions.push(x, y + 1, z + 0.01);
     shapeData.texCoords.push(1.0, 0.0);
 
     return shapeData;
@@ -307,7 +307,7 @@ function createCharacter(gl, tex) {
         shapes: [],
         texture: tex
     }
-    character.shapes.push(createShape(gl, createShpere(5.5, 5.5, 15, 0.15)));
+    character.shapes.push(createShape(gl, createSphere(5.5, 5.5, 15, 0.15)));
     character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
     return character;
 }
