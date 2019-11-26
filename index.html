@@ -46,7 +46,7 @@
     <script src="defs.js"></script>
     <script src="view.js"></script>
 
-    
+
     <script id="vertexShader0" type="x-shader/x-vertex">
         attribute vec3 vert_position;
         attribute vec2 vert_texCoord;
@@ -61,15 +61,20 @@
         uniform mat4 xform_normalMat;
         uniform mat4 xform_rotMat;
         uniform mat4 xform_scaleMat;
+        varying vec3 vertPos;
+
    
         void main() {
             // Calculate point in eye space
             vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
     
+            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
+            vertPos = vec3(vertPos4) / vertPos4.w;
             // Calculate projected point 
             gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (transform_Mat * (vec4(vert_position, 1.0)))));
             // We have to use the inverse transpose of the modelview matrix for the normal
-            vNormal = normalize((xform_normalMat * vec4(vert_normal, 1.0)).xyz);
+            // vNormal = normalize((xform_normalMat * vec4(vert_normal, 1.0)).xyz);
+            vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
         }
     </script>
@@ -79,25 +84,37 @@
         varying vec2 vUv;
         varying vec3 vNormal; // fragment normal in eye space
         varying vec4 vPosition; // fragment position in eye space
+
+        varying vec3 vertPos;
         uniform sampler2D texture;
         vec3 to_sRGB(vec3 c) { return pow(c, vec3(1.0/2.2)); }
         vec3 from_sRGB(vec3 c) { return pow(c, vec3(2.2)); }
         void main() {
-            vec3 lightPos = vec3(50, 50, 50);
+            float shininessVal = 80.0;
+            vec3 lightPos = vec3(1.0, 1000.0, 100000000.0);
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
             float exposure = 1.0;
             float roughness = 1.0;
             vec3 N = normalize(vNormal);
-            vec3 V = normalize(-vPosition.xyz);
+            // vec3 V = normalize(-vertPos.xyz);
             vec3 finalColor = vec3(0.0, 0.0, 0.0);
-            vec3 alanna = vec3(5.0, 5.0, 5.0);
-            float r = length(lightPos - vPosition.xyz);
-            vec3 L = normalize(lightPos - vPosition.xyz);
+            float r = 1.0;
+            // length(lightPos - vPosition.xyz);
+            vec3 L = normalize(lightPos - vertPos);
+            vec3 V = normalize(-vertPos);
             vec3 H = normalize(L + V);
             // Calculate diffuse term 
+            float lambertian = max(dot(N, L), 0.0);
+            float specular = 0.0;
+            if (lambertian > 0.0) {
+                vec3 R = reflect(-L, N);
+                float specAngle = max(dot(R, V), 0.0);
+                specular = pow(specAngle, shininessVal);
+
+            }
             vec3 Idiff = (texture2D(texture, vUv).xyz) * max(dot(N, L), 0.0);
-            if (true) {
-                Idiff = vec3(0.5, 1.0, 1.0);
+            if (max(dot(N, L), 0.0) == 0.0) {
+                Idiff = vec3(1.0, 1.0, 1.0);
             }
         
             // Calculate specular term
@@ -105,15 +122,15 @@
             // finalColor += lightColor * (Idiff + Ispec) / (r*r);
             finalColor += lightColor * (Idiff) / (r*r);
             vec4 c = texture2D(texture, vUv);
-            vec3 test = vec3(1.0);
             if (gl_FrontFacing) {
                 // gl_FragColor = vec4(finalColor * exposure, 1.0);
                 // gl_FragColor = vec4(test, 1.0);
-                gl_FragColor = c;
+                // gl_FragColor = c;
+                gl_FragColor = vec4((texture2D(texture, vUv).xyz) * lambertian + (texture2D(texture, vUv).xyz) * specular, 1.0); 
             } else {
                 // gl_FragColor = vec4(170.0/255.0, 160.0/255.0, 0.0, 1.0);
-                //gl_FragColor = c;
-                gl_FragColor = vec4(finalColor * exposure, 1.0);
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                //gl_FragColor = vec4(finalColor * exposure, 1.0);
             }
         }
     </script>
@@ -373,7 +390,7 @@
             webglCanvas.keydown(function (event) {
 
                 if (event.key == "Shift") {
-                    if (!prevShiftDown){
+                    if (!prevShiftDown) {
                         compress_time = Date.now();
                         prevShiftDown = true;
                     }
@@ -391,7 +408,7 @@
 
             });
 
-            function drawShape(gl, shape, texture, transmat) {
+            function drawShape(gl, shape, texture, transmat, isChar) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
                         gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
@@ -453,7 +470,7 @@
             function dropOnce(transmat, dropmat) {
                 var tot = mat4.create();
                 mat4.multiply(tot, transmat, dropmat);
-                character.shapes.forEach(shape => drawShape(gl, shape, character.texture, tot));
+                character.shapes.forEach(shape => drawShape(gl, shape, character.texture, tot, true));
                 if (characterheight > -13) {
                     characterheight = characterheight - 0.008;
                     var drop = vec3.create();
@@ -470,12 +487,12 @@
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat)));
-                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat)));
-                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3)));
-                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat));
-                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat));
-                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3));
+                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false)));
+                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false)));
+                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false)));
+                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false));
+                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false));
+                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false));
             }
 
             function dropCube(transmat, dropmat) {
@@ -533,7 +550,7 @@
             //     }
             // }
 
-            
+
             function resetCubeMatrices() {
                 init = false;
                 all_cubes.push(new_cube);
