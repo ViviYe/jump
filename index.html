@@ -113,14 +113,14 @@
             if (isCharacter == 1.0) {
                 gl_FragColor = 2.0 * vec4((texture2D(texture, vUv).xyz) * lambertian + (texture2D(texture, vUv).xyz) * specular, 1.0); 
             } else {
-                if (N.x > 0.0) {
+                if (N.x == 1.0) {
                     gl_FragColor = vec4(0.5);
 
-                } else if (N.x < 0.0) {
+                } else if (N.y == 1.0) {
                     gl_FragColor = vec4(0.0);
                 }
-                else if (N.x == 0.0) {
-                    gl_FragColor = vec4(1.0);
+                else if (N.z == 1.0) {
+                    gl_FragColor = texture2D(texture, vUv);
                 } else {
                     gl_FragColor = texture2D(texture, vUv);
 

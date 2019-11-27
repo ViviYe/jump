@@ -14,7 +14,7 @@ function createNorthWall(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, -1.0, 0.0]);
+        shapeData.normals.push(0.0, -1.0, 0.0);
     }
 
     shapeData.positions.push(x, y + 1, z);
@@ -39,7 +39,7 @@ function createSouthWall(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 1.0, 0.0]);
+        shapeData.normals.push(0.0, 1.0, 0.0);
     }
 
     shapeData.positions.push(x, y, z);
@@ -65,7 +65,7 @@ function createWestWall(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([1.0, 0.0, 0.0]);
+        shapeData.normals.push(1.0, 0.0, 0.0);
     }
 
     shapeData.positions.push(x, y, z);
@@ -91,7 +91,7 @@ function createEastWall(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([-1.0, 0.0, 0.0]);
+        shapeData.normals.push(-1.0, 0.0, 0.0);
     }
 
     shapeData.positions.push(x + 1, y, z);
@@ -117,7 +117,7 @@ function createFloor(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 0.0, 1.0]);
+        shapeData.normals.push(0.0, 0.0, 1.0);
     }
 
     shapeData.positions.push(x, y, z);
@@ -143,7 +143,7 @@ function createBigFloor(x, y, z, delta) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 0.0, 1.0]);
+        shapeData.normals.push(0.0, 0.0, 1.0);
     }
 
     shapeData.positions.push(x, y, z);
@@ -240,7 +240,7 @@ function createRoof(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 0.0, -1.0]);
+        shapeData.normals.push(0.0, 0.0, -1.0);
     }
 
     shapeData.positions.push(x, y, z + 1);
@@ -265,7 +265,7 @@ function createShadow(x, y, z) {
 
     var i;
     for (i = 0; i < 4; i++) {
-        shapeData.normals.push([0.0, 0.0, -1.0]);
+        shapeData.normals.push(0.0, 0.0, -1.0);
     }
 
     shapeData.positions.push(x - 0.2, y - 0.2, z + 0.01);
