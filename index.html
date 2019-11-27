@@ -65,6 +65,9 @@
         uniform mat4 xform_rotMat;
         uniform mat4 xform_scaleMat;
         uniform float isCharacter;
+
+        varying highp vec3 vLighting;
+
    
         void main() {
             // Calculate point in eye space
@@ -78,6 +81,16 @@
 
             vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
+
+            // Apply lighting for cubes
+            highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+            highp vec3 directionalLightColor = vec3(1, 1, 1);
+            highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
+      
+            highp vec3 transformedNormal = mat3(xform_normalMat) * vert_normal;
+      
+            highp float directional = max(dot(transformedNormal, directionalVector), 0.0);
+            vLighting = ambientLight + (directionalLightColor * directional);
         }
     </script>
 
@@ -90,6 +103,9 @@
 
         uniform sampler2D texture;
         uniform float isCharacter;
+
+        varying highp vec3 vLighting;
+
 
         void main() {
             float shininessVal = 100.0;
@@ -113,20 +129,8 @@
             if (isCharacter == 1.0) {
                 gl_FragColor = 2.0 * vec4((texture2D(texture, vUv).xyz) * lambertian + (texture2D(texture, vUv).xyz) * specular, 1.0); 
             } else {
-                if (N.x == 1.0) {
-                    gl_FragColor = vec4(0.5);
-
-                } else if (N.y == 1.0) {
-                    gl_FragColor = vec4(0.0);
-                }
-                else if (N.z == 1.0) {
-                    gl_FragColor = texture2D(texture, vUv);
-                } else {
-                    gl_FragColor = texture2D(texture, vUv);
-
-                }
-                // gl_FragColor = 2.0 * vec4((texture2D(texture, vUv).xyz) * lambertian + (texture2D(texture, vUv).xyz) * specular, 1.0); 
-
+                highp vec4 texelColor = texture2D(texture, vUv);
+                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
             }
         }
     </script>
