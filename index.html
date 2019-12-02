@@ -117,6 +117,14 @@
 
 
     <script>
+
+        var transform_rain_1 = mat4.create();
+        var transform_rain_2 = mat4.create();
+        var transform_rain_3 = mat4.create();
+
+        var rain = [];
+
+        var rainHeight = 0;
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -128,6 +136,7 @@
 
         var characterheight = 0;
         var drop_character = mat4.create();
+        var drop_rain = mat4.create();
         var transform_character = mat4.create();
         var rotate_character = mat4.create();
         var init = true;
@@ -399,6 +408,7 @@
                     if (transmat != null) {
                         if (program0.transform_Mat != null) {
                             gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
+
                         }
                     }
                     if (program0.xform_normalMat != null) {
@@ -446,6 +456,7 @@
 
                 new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
+                new_rainDrop = createCube(gl, 7, 7, 5, cubetextures[0]);
                 character = createCharacter(gl, textureCharacter);
 
             }
@@ -479,6 +490,11 @@
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false));
             }
 
+            function drawRainDrop(dropmat) {
+                rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
+                // (new_rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false));
+            }
+
             function dropCube(transmat, dropmat) {
                 drawCube(transmat, dropmat);
                 if (height > -5) {
@@ -492,9 +508,23 @@
                     window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
                 }
             }
+
+            function dropRain(dropmat) {
+                drawRainDrop(dropmat);
+                if (rainHeight > -5) {
+                    rainHeight = rainHeight - 0.01;
+                    var drop = vec3.create();
+                    vec3.set(drop, 0, 0, rainHeight);
+                    var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                    transform_rain_2 = droptranslation;
+                    window.requestAnimationFrame(() => dropRain(droptranslation));
+                }
+            }
+
             var decelRate = 0.99;
             var decelRate2 = 0.0015;
             var maxHeight = 0.7;
+            var maxRainHeight = 1.0;
             var dropping = false;
             var eps = 0.01;
 
@@ -550,6 +580,18 @@
                 transform_matrix_2 = mat4.create();
             }
 
+            function resetRainDropMatrices() {
+                rain.push(new_rainDrop);
+                if (rain.length >= 7) {
+                    rain.shift();
+                }
+                rainHeight = 0;
+                maxRainHeight = 1;
+                bouncing = false;
+                transform_rain_1 = mat4.clone(transform_rain_2);
+                transform_rain_2 = mat4.create();
+            }
+
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -565,12 +607,14 @@
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
+                new_rainDrop = createCube(gl, 7, 7, 5, cubetextures[0]);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
                 randDirAndDist();
+                resetRainDropMatrices();
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -674,9 +718,14 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
+                window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
+
+
                 // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 dropOnce(transform_character, drop_character);
+
+                dropRain(drop_rain);
 
                 window.requestAnimationFrame(updateWebGL);
             }
