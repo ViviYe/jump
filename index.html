@@ -118,7 +118,6 @@
 
     <script>
 
-        var transform_rain_1 = mat4.create();
         var transform_rain_2 = mat4.create();
         var transform_rain_3 = mat4.create();
 
@@ -573,18 +572,19 @@
                     shapeData.normals.push(0.0, -1.0, 0.0);
                 }
 
-                var delta = 0.1;
+                var xDelta = 0.1;
+                var yDelta = 0.1;
 
-                shapeData.positions.push(x, y + delta, z);
+                shapeData.positions.push(x, y + yDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
 
-                shapeData.positions.push(x + delta, y + delta, z);
+                shapeData.positions.push(x + xDelta, y + yDelta, z);
                 shapeData.texCoords.push(0.0, 0.0);
 
-                shapeData.positions.push(x + delta, y + delta, z + delta);
+                shapeData.positions.push(x + xDelta, y + yDelta, z + xDelta);
                 shapeData.texCoords.push(0.0, 1.0);
 
-                shapeData.positions.push(x, y + delta, z + delta);
+                shapeData.positions.push(x, y + yDelta, z + xDelta);
                 shapeData.texCoords.push(1.0, 1.0);
 
                 return shapeData;
@@ -616,13 +616,11 @@
             }
 
             function resetRainDropMatrices() {
-                if (rain.length >= 100) {
-                    rain.shift();
+                if (rain.length >= 10) {
+                    rain = rain.slice(rain.length / 2);
                 }
                 rainHeight = 0;
-                maxRainHeight = 1;
-                bouncing = false;
-                transform_rain_1 = mat4.clone(transform_rain_2);
+                maxRainHeight = 10;
                 transform_rain_2 = mat4.create();
             }
 
@@ -641,8 +639,8 @@
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
-                for (var x = 5; x < 16; x += 3) {
-                    for (var y = 5; y < 16; y += 3) {
+                for (var x = Math.min(lastX - 5, 0); x < lastX + 11; x += 3) {
+                    for (var y = Math.min(lastY - 5, 0); y < lastY + 11; y += 3) {
                         new_rainDrop = createRainDrops(gl, x, y, 2, cubetextures[0]);
                         rain.push(new_rainDrop);
                     }
@@ -654,6 +652,7 @@
                 resetCubeMatrices();
                 randDirAndDist();
                 resetRainDropMatrices();
+
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -765,6 +764,8 @@
                 dropOnce(transform_character, drop_character);
 
                 dropRain(drop_rain);
+
+
 
                 window.requestAnimationFrame(updateWebGL);
             }
