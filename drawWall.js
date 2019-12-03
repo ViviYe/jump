@@ -32,33 +32,6 @@ function createNorthWall(x, y, z) {
     return shapeData;
 }
 
-function createRainDrop(x, y, z) {
-    var shapeData = createShapeData();
-    var v = shapeData.positions.length / 3;
-    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
-    var i;
-    for (i = 0; i < 4; i++) {
-        shapeData.normals.push(0.0, -1.0, 0.0);
-    }
-
-    var delta = 0.02;
-
-    shapeData.positions.push(x, y + delta, z);
-    shapeData.texCoords.push(1.0, 0.0);
-
-    shapeData.positions.push(x + delta, y + delta, z);
-    shapeData.texCoords.push(0.0, 0.0);
-
-    shapeData.positions.push(x + delta, y + delta, z + delta);
-    shapeData.texCoords.push(0.0, 1.0);
-
-    shapeData.positions.push(x, y + delta, z + delta);
-    shapeData.texCoords.push(1.0, 1.0);
-
-    return shapeData;
-}
-
 function createSouthWall(x, y, z) {
     var shapeData = createShapeData();
     var v = shapeData.positions.length / 3;
@@ -329,15 +302,6 @@ function createCube(gl, x, y, z, tex) {
     return cube;
 }
 
-function createRainDrops(gl, x, y, z, tex) {
-    var cube = {
-        shapes: [],
-        texture: tex,
-        shadow: []
-    }
-    cube.shapes.push(createShape(gl, createRainDrop(x, y, z)));
-    return cube;
-}
 
 function createCharacter(gl, tex) {
     var character = {

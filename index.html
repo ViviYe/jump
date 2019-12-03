@@ -490,7 +490,6 @@
 
             function drawRainDrop(dropmat) {
                 rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
-                // (new_rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false));
             }
 
             function dropCube(transmat, dropmat) {
@@ -573,7 +572,7 @@
                 }
 
                 var xDelta = 0.1;
-                var yDelta = 0.1;
+                var yDelta = 1;
 
                 shapeData.positions.push(x, y + yDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
@@ -652,7 +651,6 @@
                 resetCubeMatrices();
                 randDirAndDist();
                 resetRainDropMatrices();
-
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -681,12 +679,10 @@
                     targetPos[1] + 0.5,
                     0.0
                 )
-
             });
 
-
-
             function updateWebGL() {
+
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
@@ -756,7 +752,7 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-                window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
+                // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
 
 
                 // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
