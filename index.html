@@ -718,9 +718,9 @@
                 if (bouncing) {
                     bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
                 } else if (prevShiftDown){
-                    compressBox(mat4.clone(transform_matrix_1),mat4.clone(scale_matrix_1));
+                    window.requestAnimationFrame(()=>compressBox(mat4.clone(transform_matrix_1),mat4.clone(scale_matrix_1)));
                 } else {
-                    dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
+                    window.requestAnimationFrame(()=>dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
                 dropOnce(transform_character, drop_character);
 
