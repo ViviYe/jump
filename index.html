@@ -68,13 +68,13 @@
 
         void main() {
             // Calculate point in eye space
-            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
+            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
     
-            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
+            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
             vertPos = vec3(vertPos4) / vertPos4.w;
 
             // Calculate projected point 
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (transform_Mat * (vec4(vert_position, 1.0)))));
+            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
 
             vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
@@ -248,6 +248,7 @@
             program0.xform_modelMat = gl.getUniformLocation(program0, "xform_modelMat");
             program0.transform_Mat = gl.getUniformLocation(program0, "transform_Mat");
             program0.xform_normalMat = gl.getUniformLocation(program0, "xform_normalMat");
+            program0.xform_scaleMat = gl.getUniformLocation(program0, "xform_scaleMat");
             program0.vert_position = gl.getAttribLocation(program0, "vert_position");
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             program0.vert_normal = gl.getAttribLocation(program0, "vert_normal");
@@ -371,29 +372,16 @@
             var compress_time;
             var release_time;
             var prevShiftDown = false;
+            var current_cube = [];
+            var cubeHeight = 1;
+            var compressScale = 0.999;
+            var scale_matrix_1 = mat4.create();
+            // var up = true;
+            // var bouncingBack = false;
+            // var bounceBackScale = 0.001;
+            // var maxCubeHeight = 1.05;
 
-            webglCanvas.keydown(function (event) {
-
-                if (event.key == "Shift") {
-                    if (!prevShiftDown) {
-                        compress_time = Date.now();
-                        prevShiftDown = true;
-                    }
-                }
-                return false;
-            });
-
-            webglCanvas.keyup(function (event) {
-                if (event.key == "Shift") {
-                    prevShiftDown = false;
-                    release_time = Date.now();
-                    console.log(release_time - compress_time);
-                }
-                return false;
-
-            });
-
-            function drawShape(gl, shape, texture, transmat, isCharacter) {
+            function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
                         gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
@@ -408,6 +396,11 @@
                         if (program0.transform_Mat != null) {
                             gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
 
+                        }
+                    }
+                    if (scalemat != null) {
+                        if (program0.xform_scaleMat != null) {
+                            gl.uniformMatrix4fv(program0.xform_scaleMat, false, scalemat);
                         }
                     }
                     if (program0.xform_normalMat != null) {
@@ -433,6 +426,105 @@
 
             }
 
+            var dropSpeed = 0.008;
+
+            function resetCubeMatrices() {
+
+                transform_matrix_1 = mat4.clone(transform_matrix_2);
+                transform_matrix_2 = mat4.create();
+                init = false;
+                if (current_cube.length != 0) {
+                    all_cubes.push(current_cube);
+                }
+                current_cube = new_cube;
+                if (all_cubes.length >= 7) {
+                    all_cubes.shift();
+                    ground.shift();
+
+                }
+                height = 0;
+                maxHeight = 0.3;
+                bouncing = false;
+                decelRate2 = 0.1;
+                dropSpeed = 0.008;
+            }
+
+            function randDirAndDist() {
+                var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
+                dis = Math.random() * (+3.5 - +1.5) + +1.5;
+                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3) {
+                    dir = 0;
+                    lastX += dis;
+                } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
+                    dir = 1;
+                    lastY += dis;
+                } else randDirAndDist();
+
+                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
+                new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
+            }
+
+            function dropNewBox() {
+                resetCubeMatrices();
+                randDirAndDist();
+                currentX = Math.round(control.currentPosition[0] - 0.5);
+                currentY = Math.round(control.currentPosition[1] - 0.5);
+                dx = Math.round(Math.cos(dir * Math.PI / 2));
+                dy = Math.round(Math.sin(dir * Math.PI / 2));
+                var targetPos;
+                if (dir == 0)
+                    targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
+                if (dir == 1)
+                    targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
+                if (dir == 3)
+                    targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
+
+                control.mode = IS_MOVING;
+                control.fromPosition = vec3.fromValues(
+                    currentX + 0.5,
+                    currentY + 0.5,
+                    0.0
+                );
+                direction = vec3.fromValues(
+                    dx,
+                    dy,
+                    0.0
+                );
+                control.toPosition = vec3.fromValues(
+                    targetPos[0] + 0.5,
+                    targetPos[1] + 0.5,
+                    0.0
+                )
+            }
+
+            webglCanvas.keydown(function (event) {
+
+                if (event.key == "Shift") {
+                    if (!prevShiftDown) {
+                        compress_time = Date.now();
+                        prevShiftDown = true;
+                        scale_matrix_1 = mat4.create();
+                        transform_matrix_1 = mat4.clone(transform_matrix_2);
+                        compressScale = 0.999;
+                        cubeHeight = 1;
+                    }
+                }
+                return false;
+            });
+
+            webglCanvas.keyup(function (event) {
+                if (event.key == "Shift") {
+                    dropNewBox();
+                    release_time = Date.now();
+                    cubeHeight = 1;
+
+                    prevShiftDown = false;
+
+                }
+                return false;
+
+            });
+
             function reset() {
                 control = {
                     mode: NO_CONTROL,
@@ -453,13 +545,12 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-                new_cube = createCube(gl, 5, 5, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
+                new_cube = createCube(gl, 5, 5, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
                 new_ground = createGround(gl, -15, -15, 0);
                 character = createCharacter(gl, textureCharacter);
+                dropNewBox();
 
             }
-            reset();
-
             function dropOnce(transmat, dropmat) {
                 var tot = mat4.create();
                 mat4.multiply(tot, transmat, dropmat);
@@ -475,17 +566,23 @@
             }
 
             var bouncing = false;
-            function drawCube(transmat, dropmat) {
+            function drawCube(transmat, dropmat, compressmat) {
                 gl.clearColor(1.0, 1.0, 1.0, 1.0);
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
-                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false)));
-                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false)));
-                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false)));
-                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false));
-                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false));
-                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false));
+                all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
+                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
+                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
+
+                (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false, transform_matrix_3));
+                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
+                if (current_cube.length != 0) {
+                    //console.log(compressmat);
+                    (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
+                    (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
+                }
+                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
             }
 
             function drawRainDrop(dropmat) {
@@ -493,9 +590,10 @@
             }
 
             function dropCube(transmat, dropmat) {
-                drawCube(transmat, dropmat);
+                drawCube(transmat, dropmat, transform_matrix_3);
                 if (height > -5) {
-                    height = height - 0.01;
+                    height = height - dropSpeed;
+                    dropSpeed *= 1.0014;
                     if (height <= -5)
                         bouncing = true;
                     var drop = vec3.create();
@@ -523,11 +621,11 @@
             var maxHeight = 0.7;
             var maxRainHeight = 1.0;
             var dropping = false;
-            var eps = 0.01;
+            var eps = 0.1;
 
             function bounce(transmat, dropmat) {
-                drawCube(transmat, dropmat);
-                if (maxHeight < 0.1) {
+                drawCube(transmat, dropmat, transform_matrix_3);
+                if (maxHeight < eps) {
                     bouncing = false;
                     return;
                 }
@@ -535,8 +633,10 @@
                     height += decelRate2;
                     dropping = height >= maxHeight - 5;
                     maxHeight *= decelRate;
+                    decelRate2 *= 0.9;
                 } else {
                     height -= decelRate2;
+                    decelRate2 *= 0.9;
                     dropping = height > - 5;
                 }
                 var drop = vec3.create();
@@ -546,7 +646,23 @@
                 window.requestAnimationFrame(() => bounce(transmat, droptranslation));
             }
 
-
+            var compressDecel = 0.00025;
+            function compressBox(transmat, compressmat) {
+                if (all_cubes.length == 0)
+                    drawCube(mat4.create(), transmat, compressmat);
+                else if (prevShiftDown)
+                    drawCube(transmat, transmat, compressmat);
+                else drawCube(transmat, mat4.create(), compressmat);
+                if (cubeHeight > 0.5) {
+                    cubeHeight *= compressScale;
+                    compressScale = 1 - compressScale * compressDecel;
+                    var compress = vec3.create();
+                    vec3.set(compress, 1, 1, cubeHeight);
+                    var compressScaleMat = mat4.fromScaling(mat4.clone(compressmat), compress);
+                    scale_matrix_1 = compressScaleMat;
+                    window.requestAnimationFrame(() => compressBox(transmat, compressScaleMat));
+                }
+            }
 
             // function dropCharacter(transmat, dropmat) {
             //     drawCharacter(transmat, dropmat);
@@ -748,15 +864,12 @@
                     }
                 }
                 if (bouncing) {
-                    window.requestAnimationFrame(() => bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                    bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
+                } else if (prevShiftDown) {
+                    compressBox(mat4.clone(transform_matrix_1), mat4.clone(scale_matrix_1));
                 } else {
-                    window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
+                    dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
                 }
-                // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
-
-
-                // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
-
                 dropOnce(transform_character, drop_character);
 
                 dropRain(drop_rain);
