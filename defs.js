@@ -47,6 +47,9 @@ var transform_matrix_1 = mat4.create();
 var transform_matrix_2 = mat4.create();
 var transform_matrix_3 = mat4.create();
 
+var transform_rain_1 = mat4.create();
+var transform_rain_2 = mat4.create();
+
 // var compress_time;
 // var release_time;
 // var prevShiftDown = false;
@@ -54,6 +57,7 @@ var transform_matrix_3 = mat4.create();
 var characterheight = 0;
 var all_cubes = [];
 var new_cube = [];
+
 
 var ground = [];
 var new_ground = [];

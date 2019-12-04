@@ -302,6 +302,7 @@ function createCube(gl, x, y, z, tex) {
     return cube;
 }
 
+
 function createCharacter(gl, tex) {
     var character = {
         shapes: [],
