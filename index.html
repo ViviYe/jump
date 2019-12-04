@@ -720,8 +720,8 @@
 
             function dropRain(dropmat) {
                 drawRainDrop(dropmat);
-                if (rainHeight > -6) {
-                    rainHeight = rainHeight - 0.02;
+                if (rainHeight > -8) {
+                    rainHeight = rainHeight - 0.01;
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, rainHeight);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
@@ -849,8 +849,15 @@
                     rain = [];
                 }
                 rainHeight = 0;
-                maxRainHeight = 10;
+                maxRainHeight = 20;
                 transform_rain_2 = mat4.create();
+                for (var x = Math.min(lastX - 5, 0); x < lastX + 11; x += 3) {
+                    for (var y = Math.min(lastY - 5, 0); y < lastY + 11; y += 3) {
+                        new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
+                        rain.push(new_rainDrop);
+                    }
+                }
+
             }
 
             function randDirAndDist() {
@@ -868,18 +875,14 @@
                 } else randDirAndDist();
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
-                for (var x = Math.min(lastX - 5, 0); x < lastX + 11; x += 3) {
-                    for (var y = Math.min(lastY - 5, 0); y < lastY + 11; y += 3) {
-                        new_rainDrop = createRainDrops(gl, x, y, 2, textureRain);
-                        rain.push(new_rainDrop);
-                    }
-                }
+
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
+            setInterval(function () { resetRainDropMatrices(); }, 500);
+
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
-                resetRainDropMatrices();
                 randDirAndDist();
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
