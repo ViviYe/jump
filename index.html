@@ -801,8 +801,9 @@
                     shapeData.normals.push(0.0, -1.0, 0.0);
                 }
 
-                var xDelta = 0.05;
-                var yDelta = 0.25;
+
+                var xDelta = Math.floor((Math.random() * 5) + 1) / 100;
+                var yDelta = Math.floor((Math.random() * 30) + 20) / 100;
 
                 shapeData.positions.push(x, y + yDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
@@ -851,8 +852,8 @@
                 rainHeight = 0;
                 maxRainHeight = 20;
                 transform_rain_2 = mat4.create();
-                for (var x = Math.min(lastX - 5, 0); x < lastX + 11; x += 3) {
-                    for (var y = Math.min(lastY - 5, 0); y < lastY + 11; y += 3) {
+                for (var x = Math.min(lastX - 3, 0); x < lastX + 11; x += Math.floor((Math.random() * 5) + 1)) {
+                    for (var y = Math.min(lastY - 3, 0); y < lastY + 11; y += Math.floor((Math.random() * 5) + 1)) {
                         new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
                         rain.push(new_rainDrop);
                     }
