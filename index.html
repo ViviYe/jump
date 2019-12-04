@@ -741,7 +741,7 @@
                 if (current_cube.length != 0) {
                     //console.log(compressmat);
                     (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
-                    (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
+                 //   (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
                 }
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
             }
