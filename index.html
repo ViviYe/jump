@@ -535,9 +535,8 @@
             }
 
             var dropSpeed = 0.008;
-
+            var rainDropSpeed = 0.008;
             function resetCubeMatrices() {
-
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
                 init = false;
@@ -699,13 +698,9 @@
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
             }
 
-            // function drawRainDrop(dropmat) {
-            //     rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawRain(gl, shape, dropmat, new_rainDrop.texture)))
-            // }
 
             function drawRainDrop(dropmat) {
                 rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
-                // (new_rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false));
             }
 
             function dropCube(transmat, dropmat) {
@@ -726,7 +721,8 @@
             function dropRain(dropmat) {
                 drawRainDrop(dropmat);
                 if (rainHeight > -8) {
-                    rainHeight = rainHeight - 0.01;
+                    rainHeight = rainHeight - rainDropSpeed;
+                    rainDropSpeed *= 1.0004;
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, rainHeight);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
@@ -783,19 +779,6 @@
                 }
             }
 
-            // function dropCharacter(transmat, dropmat) {
-            //     drawCharacter(transmat, dropmat);
-            //     if (characterheight > -5) {
-            //         console.log(characterheight)
-            //         characterheight = characterheight - 0.01;
-            //         var drop = vec3.create();
-            //         vec3.set(drop, 0, 0, characterheight);
-            //         var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
-            //         // drop_character = transform_character;
-            //         window.requestAnimationFrame(() => dropCharacter(transmat, droptranslation));
-            //     }
-            // }
-
             function createRainDrop(x, y, z) {
                 var shapeData = createShapeData();
                 var v = shapeData.positions.length / 3;
@@ -806,8 +789,7 @@
                     shapeData.normals.push(0.0, -1.0, 0.0);
                 }
 
-
-                var xDelta = Math.floor((Math.random() * 5) + 1) / 100;
+                var xDelta = Math.floor((Math.random() * 3) + 1) / 100;
                 var yDelta = Math.floor((Math.random() * 30) + 20) / 100;
 
                 shapeData.positions.push(x, y + yDelta, z);
@@ -835,35 +817,18 @@
                 return rainDrop;
             }
 
-            function resetCubeMatrices() {
-                init = false;
-                all_cubes.push(new_cube);
-                if (all_cubes.length >= 7) {
-                    all_cubes.shift();
-                    ground.shift();
-
-                }
-                height = 0;
-                maxHeight = 1;
-                bouncing = false;
-                transform_matrix_1 = mat4.clone(transform_matrix_2);
-                transform_matrix_2 = mat4.create();
-            }
-
             function resetRainDropMatrices() {
-                if (rain.length >= 10) {
-                    rain = [];
-                }
+                rain = [];
                 rainHeight = 0;
                 maxRainHeight = 20;
                 transform_rain_2 = mat4.create();
-                for (var x = Math.min(lastX - 3, 0); x < lastX + 11; x += Math.floor((Math.random() * 5) + 1)) {
-                    for (var y = Math.min(lastY - 3, 0); y < lastY + 11; y += Math.floor((Math.random() * 5) + 1)) {
+                rainDropSpeed = 0.008;
+                for (var x = Math.min(lastX, 0); x < lastX + 8; x += Math.floor((Math.random() * 5) + 1)) {
+                    for (var y = Math.min(lastY, 0); y < lastY + 8; y += Math.floor((Math.random() * 5) + 1)) {
                         new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
                         rain.push(new_rainDrop);
                     }
                 }
-
             }
 
             function randDirAndDist() {
@@ -885,7 +850,7 @@
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
-            setInterval(function () { if (raining) resetRainDropMatrices(); }, 300);
+            setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
@@ -995,7 +960,9 @@
                 window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
 
                 if (raining) {
-                    window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
+                    // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
+                    dropRain(mat4.clone(transform_rain_2));
+
                 }
                 // dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
