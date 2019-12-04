@@ -185,7 +185,6 @@
 
         var characterheight = 0;
         var drop_character = mat4.create();
-        var drop_rain = mat4.create();
         var transform_character = mat4.create();
         var rotate_character = mat4.create();
         var init = true;
@@ -618,6 +617,10 @@
                         cubeHeight = 1;
                     }
                 }
+                // if press R, then rain
+                if (event.keyCode == "82") {
+                    raining = !raining;
+                }
                 return false;
             });
 
@@ -675,6 +678,8 @@
             }
 
             var bouncing = false;
+            var raining = false;
+
             function drawCube(transmat, dropmat, compressmat) {
                 gl.clearColor(1.0, 1.0, 1.0, 1.0);
                 gl.clearDepth(1.0);
@@ -880,7 +885,7 @@
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
-            setInterval(function () { resetRainDropMatrices(); }, 500);
+            setInterval(function () { if (raining) resetRainDropMatrices(); }, 300);
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
@@ -916,7 +921,6 @@
             });
 
             function updateWebGL() {
-                dropRain(drop_rain);
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
@@ -984,13 +988,16 @@
                 if (bouncing) {
                     bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
                 } else if (prevShiftDown) {
-                    compressBox(mat4.clone(transform_matrix_1), mat4.clone(scale_matrix_1));
+                    window.requestAnimationFrame(() => compressBox(mat4.clone(transform_matrix_1), mat4.clone(scale_matrix_1)));
                 } else {
-                    dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
+                    window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-                dropRain(mat4.clone(transform_rain_2));
-                dropOnce(transform_character, drop_character);
-                dropRain(drop_rain);
+                window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
+
+                if (raining) {
+                    window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
+                }
+                // dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
             }
 
