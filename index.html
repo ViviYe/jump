@@ -160,26 +160,8 @@
         uniform float isCharacter;
 
         void main() {
-            float shininess = 100.0;
-
-            vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
-            vec3 lightColor = vec3(1.0, 1.0, 1.0);
-
-            vec3 N = normalize(vNormal);
-            vec3 L = normalize(lightPos - vertPos);
-            vec3 V = normalize(-vertPos);
-            vec3 H = normalize(L + V);
-         
             vec3 color = texture2D(texture, vUv).rgb;
-            float diffuseLambertian = max(dot(N, L), 0.0);
-            float specularHighlight = pow(max(dot(V, reflect(-L, N)), 0.0), 100.0);
-
-            if (isCharacter == 1.0) {
-                gl_FragColor = 2.0 * vec4(color * (diffuseLambertian + specularHighlight), 1.0); 
-            } else {
-                float ambient = 0.8;
-                gl_FragColor = vec4(color * (0.2 * diffuseLambertian + 0.2 * specularHighlight + ambient), 1.0);
-            }
+            gl_FragColor = vec4(color, 1.0);
         }
     </script>
 
@@ -347,24 +329,25 @@
             };
 
             program1 = createGlslProgram(gl, "vertexShader1", "fragmentShader1");
-            program1.texture = gl.getUniformLocation(program0, "texture");
-            program1.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
-            program1.xform_viewMat = gl.getUniformLocation(program0, "xform_viewMat");
-            program1.xform_modelMat = gl.getUniformLocation(program0, "xform_modelMat");
-            program1.vert_position = gl.getAttribLocation(program0, "vert_position");
-            program1.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
-            program1.vert_normal = gl.getAttribLocation(program0, "vert_normal");
+            program1.texture = gl.getUniformLocation(program1, "texture");
+            program1.xform_projMat = gl.getUniformLocation(program1, "xform_projMat");
+            program1.xform_viewMat = gl.getUniformLocation(program1, "xform_viewMat");
+            program1.xform_modelMat = gl.getUniformLocation(program1, "xform_modelMat");
+            program1.vert_position = gl.getAttribLocation(program1, "vert_position");
+            program1.vert_texCoord = gl.getAttribLocation(program1, "vert_texCoord");
+            program1.vert_normal = gl.getAttribLocation(program1, "vert_normal");
+            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
 
             program1.draw = function (gl, shape, initialize) {
-                gl.useProgram(program0);
+                gl.useProgram(program1);
                 initialize();
                 gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
-                gl.enableVertexAttribArray(program0.vert_position);
-                gl.vertexAttribPointer(program0.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
+                gl.enableVertexAttribArray(program1.vert_position);
+                gl.vertexAttribPointer(program1.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
                 gl.enableVertexAttribArray(program0.vert_texCoord);
-                gl.vertexAttribPointer(program0.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
+                gl.vertexAttribPointer(program1.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
                 gl.enableVertexAttribArray(program0.vert_normal);
-                gl.vertexAttribPointer(program0.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
+                gl.vertexAttribPointer(program1.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
                 gl.bindBuffer(gl.ARRAY_BUFFER, null);
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
                 gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
@@ -481,16 +464,16 @@
             // var bounceBackScale = 0.001;
             // var maxCubeHeight = 1.05;
 
-            function drawRain(gl, shape, texture) {
+            function drawRain(gl, shape, dropmat, texture) {
                 program1.draw(gl, shape, function () {
                     if (program1.xform_projMat != null) {
-                        gl.uniformMatrix4fv(program0.xform_projMat, false, getProjMatrix());
+                        gl.uniformMatrix4fv(program1.xform_projMat, false, getProjMatrix());
                     }
                     if (program1.xform_viewMat != null) {
-                        gl.uniformMatrix4fv(program0.xform_viewMat, false, getViewMatrix());
+                        gl.uniformMatrix4fv(program1.xform_viewMat, false, getViewMatrix());
                     }
                     if (program1.xform_modelMat != null) {
-                        gl.uniformMatrix4fv(program0.xform_modelMat, false, getModelMatrix());
+                        gl.uniformMatrix4fv(program1.xform_modelMat, false, getModelMatrix());
                     }
                     if (program1.texture != null) {
                         gl.activeTexture(gl.TEXTURE0);
@@ -501,8 +484,10 @@
                         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                         gl.uniform1i(program1.texture, 0);
                     }
+                    if (program1.transform_Mat != null) {
+                        gl.uniformMatrix4fv(program1.transform_Mat, false, dropmat);
+                    }
                 });
-
             }
 
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
@@ -709,8 +694,13 @@
                 new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
             }
 
+            // function drawRainDrop(dropmat) {
+            //     rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawRain(gl, shape, dropmat, new_rainDrop.texture)))
+            // }
+
             function drawRainDrop(dropmat) {
-                rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawRain(gl, shape, new_rainDrop.texture)))
+                rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
+                // (new_rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false));
             }
 
             function dropCube(transmat, dropmat) {
@@ -856,7 +846,7 @@
 
             function resetRainDropMatrices() {
                 if (rain.length >= 10) {
-                    rain = rain.slice(rain.length / 2);
+                    rain = [];
                 }
                 rainHeight = 0;
                 maxRainHeight = 10;
@@ -889,8 +879,8 @@
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
-                randDirAndDist();
                 resetRainDropMatrices();
+                randDirAndDist();
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -922,7 +912,7 @@
             });
 
             function updateWebGL() {
-
+                dropRain(drop_rain);
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
@@ -994,12 +984,9 @@
                 } else {
                     dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
                 }
+                dropRain(mat4.clone(transform_rain_2));
                 dropOnce(transform_character, drop_character);
-
                 dropRain(drop_rain);
-
-
-
                 window.requestAnimationFrame(updateWebGL);
             }
 
