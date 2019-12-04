@@ -790,7 +790,7 @@
                 }
 
                 var xDelta = Math.floor((Math.random() * 3) + 1) / 100;
-                var yDelta = Math.floor((Math.random() * 30) + 20) / 100;
+                var yDelta = Math.floor((Math.random() * 3) + 2) / 10;
 
                 shapeData.positions.push(x, y + yDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
@@ -823,8 +823,8 @@
                 maxRainHeight = 20;
                 transform_rain_2 = mat4.create();
                 rainDropSpeed = 0.008;
-                for (var x = Math.min(lastX, 0); x < lastX + 8; x += Math.floor((Math.random() * 5) + 1)) {
-                    for (var y = Math.min(lastY, 0); y < lastY + 8; y += Math.floor((Math.random() * 5) + 1)) {
+                for (var x = Math.max(lastX - 5, 0); x < lastX + 8; x += Math.floor((Math.random() * 5) + 1)) {
+                    for (var y = Math.max(lastY - 5, 0); y < lastY + 8; y += Math.floor((Math.random() * 5) + 1)) {
                         new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
                         rain.push(new_rainDrop);
                     }
