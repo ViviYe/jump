@@ -219,8 +219,15 @@
             var NO_CONTROL = 0;
             var IS_ROTATING = 1;
             var IS_MOVING = 2;
+           
+            var NO_ACTION=0;
+            var COMPRESSING=1;
+            var JUMPING =2;
+          
             var control = {
                 mode: NO_CONTROL,
+                state:NO_ACTION,
+                time: 0,
                 rotateRate: 0.005, //0.004,
                 moveRate: 0.005,
                 displacement: null,
@@ -488,6 +495,38 @@
                     }
                 });
             }
+            var compressedTime;
+
+            // webglCanvas.keydown(function (event) {
+
+            //     // if (event.key == "Shift") {
+            //     //     if (!prevShiftDown) {
+            //     //         compress_time = Date.now();
+            //     //         prevShiftDown = true;
+            //     //     }
+            //     // }
+
+            //     if (event.key == "Shift"){
+            //         control.state = COMPRESSING;
+            //         control.time = Date.now();
+            //     }
+            //     return false;
+
+            // });
+
+            // webglCanvas.keyup(function (event) {
+            //     // if (event.key == "Shift") {
+            //     //     prevShiftDown = false;
+            //     //     release_time = Date.now();
+            //     //     console.log(release_time - compress_time);
+            //     // }
+            //     if (event.key == "Shift"){
+            //         control.state = JUMPING;
+            //         control.time = Date.now();
+            //     }
+            //     return false;
+
+            // });
 
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
@@ -607,7 +646,11 @@
             webglCanvas.keydown(function (event) {
 
                 if (event.key == "Shift") {
+                    control.state = COMPRESSING;
+                    control.time = Date.now();
                     if (!prevShiftDown) {
+                        control.state = COMPRESSING;
+                        control.time = Date.now();
                         compress_time = Date.now();
                         prevShiftDown = true;
                         scale_matrix_1 = mat4.create();
@@ -624,6 +667,8 @@
             });
 
             webglCanvas.keyup(function (event) {
+                control.state = JUMPING;
+                control.time = Date.now();
                 if (event.key == "Shift") {
                     dropNewBox();
                     release_time = Date.now();
@@ -639,6 +684,8 @@
             function reset() {
                 control = {
                     mode: NO_CONTROL,
+                    state: NO_ACTION,
+                    time: 0,
                     rotateRate: 0.005, //0.004,
                     moveRate: 0.005,
                     displacement: null,
@@ -663,6 +710,7 @@
 
             }
             function dropOnce(transmat, dropmat) {
+                // transform after drop
                 var tot = mat4.create();
                 mat4.multiply(tot, transmat, dropmat);
                 character.shapes.forEach(shape => drawShape(gl, shape, character.texture, tot, true));
@@ -685,11 +733,11 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
-                all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
+              //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
                 ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
 
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false, transform_matrix_3));
-                (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
+               // (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
                 if (current_cube.length != 0) {
                     //console.log(compressmat);
                     (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
@@ -885,12 +933,64 @@
                 )
             });
 
+            function updateDropMatrix(){
+                var newdrop = mat4.create();           
+                    mat4.multiply(newdrop, transform_character, drop_character);
+                    transform_character = mat4.create();
+                    drop_character = newdrop;
+                    control.state = NO_ACTION;
+            }
+
+        
+
+            function jump(t, dir, compressedtime){
+                if (t > 2) {
+                    updateDropMatrix();
+                } else {
+           
+               var  transMat = mat4.create();
+               var  shift = vec3.create();
+                if (dir == 0){
+              
+               vec3.set(shift, 0, 0, t);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
+
+                }else if (dir == 1){
+
+               vec3.set(shift, 0, 0, t);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
+
+                }else if (dir ==3){
+                
+               vec3.set(shift, 0, 0, t);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
+
+                }else {
+                    
+                }
+            }
+            }
+
+            function compress(t){
+               var  transMat = mat4.create();
+               var  shift = vec3.create();
+               vec3.set(shift, 0, 0, -t/10);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
+            }
+
+
+
             function updateWebGL() {
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
                 }
-
+                // console.log((Date.now() - control.time)/1000);
+                // console.log( control.state);
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
@@ -957,13 +1057,24 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-                window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
+               // window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
 
                 if (raining) {
                     // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
                     dropRain(mat4.clone(transform_rain_2));
+                // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 }
+
+                console.log(control.state);
+                if (control.state == JUMPING){
+                    jump((Date.now() - control.time)/500, 0, 0);
+                }else if (control.state == COMPRESSING){
+                    compress((Date.now() - control.time)/300);
+                }else {
+
+                }
+                dropOnce(transform_character, drop_character);
                 // dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
             }

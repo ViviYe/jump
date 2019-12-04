@@ -212,7 +212,7 @@ function createCylinder(x, y, z, h, r) {
         sj = Math.sin(aj);
         cj = Math.cos(aj);
         shapeData.positions.push(sj * r + x, cj * r + y, z);
-        shapeData.normals.push(sj, cj, z);
+        shapeData.normals.push(sj, cj, 0.2);
         shapeData.texCoords.push(aj, z);
     }
     for (i = 0; i < CYLINDER_DIV; i++) {
@@ -220,7 +220,7 @@ function createCylinder(x, y, z, h, r) {
         sj = Math.sin(aj);
         cj = Math.cos(aj);
         shapeData.positions.push(sj * r * div + x, cj * r * div + y, z + h);
-        shapeData.normals.push(sj, cj, z + h);
+        shapeData.normals.push(sj, cj, 0.2);
         shapeData.texCoords.push(aj, z + h);
     }
     for (j = 0; j < CYLINDER_DIV; j++) {

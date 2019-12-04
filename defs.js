@@ -79,19 +79,19 @@ var NO_CONTROL = 0;
 var IS_ROTATING = 1;
 var IS_MOVING = 2;
 
-var control = {
-    mode: NO_CONTROL,
-    rotateRate: 0.005, //0.004,
-    moveRate: 0.005,
-    displacement: null,
-    currentHeading: 0.6,
-    fromHeading: null,
-    toHeading: null,
-    currentPosition: vec3.fromValues(0 * 1.0 + 0.5,
-        1 * 1.0 + 0.5,
-        0.0),
-    fromPosition: [0, 1],
-    toPosition: null
-};
+// var control = {
+//     mode: NO_CONTROL,
+//     rotateRate: 0.005, //0.004,
+//     moveRate: 0.005,
+//     displacement: null,
+//     currentHeading: 0.6,
+//     fromHeading: null,
+//     toHeading: null,
+//     currentPosition: vec3.fromValues(0 * 1.0 + 0.5,
+//         1 * 1.0 + 0.5,
+//         0.0),
+//     fromPosition: [0, 1],
+//     toPosition: null
+// };
 
 var init = true;
