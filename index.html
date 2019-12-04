@@ -667,9 +667,10 @@
             });
 
             webglCanvas.keyup(function (event) {
-                control.state = JUMPING;
-                control.time = Date.now();
+               
                 if (event.key == "Shift") {
+                    control.state = JUMPING;
+                    control.time = Date.now();
                     dropNewBox();
                     release_time = Date.now();
                     cubeHeight = 1;
