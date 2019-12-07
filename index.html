@@ -954,32 +954,35 @@
             function jump(t, dir, compressedtime) {
                 if (t > 2) {
                     updateDropMatrix();
-                } else {
+                } else {       
+               var  transMat = mat4.create();
+               var  shift = vec3.create();
+               var x = t;
+            if (dir == 0){
+               var h = 4-x*x;
+               var r = x*0.3;
+               vec3.set(shift, r, 0, h);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
 
-                    var transMat = mat4.create();
-                    var shift = vec3.create();
-                    if (dir == 0) {
+                }else if (dir == 1){
+              
+               var h = 0;
+               var l = x*0.5;
+               vec3.set(shift, 0, l, h);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
 
-                        vec3.set(shift, 0, 0, t);
-                        mat4.fromTranslation(transMat, shift);
-                        transform_character = transMat;
+                }else if (dir ==3){
+                    
+               vec3.set(shift, 0, 0, t);
+               mat4.fromTranslation(transMat, shift);
+               transform_character = transMat;
 
-                    } else if (dir == 1) {
-
-                        vec3.set(shift, 0, 0, t);
-                        mat4.fromTranslation(transMat, shift);
-                        transform_character = transMat;
-
-                    } else if (dir == 3) {
-
-                        vec3.set(shift, 0, 0, t);
-                        mat4.fromTranslation(transMat, shift);
-                        transform_character = transMat;
-
-                    } else {
-
-                    }
+                }else {
+                    
                 }
+            }
             }
 
             function compress(t) {
@@ -1074,14 +1077,15 @@
 
                 }
 
-                console.log(control.state);
-                if (control.state == JUMPING) {
-                    jump((Date.now() - control.time) / 500, 0, 0);
-                } else if (control.state == COMPRESSING) {
-                    compress((Date.now() - control.time) / 300);
-                } else {
+                console.log("dir" +dir);
+                if (control.state == JUMPING){
+                    jump((Date.now() - control.time)/500, dir, 0);
+                }else if (control.state == COMPRESSING){
+                    compress((Date.now() - control.time)/300);
+                }else {
 
                 }
+
                 dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
             }
