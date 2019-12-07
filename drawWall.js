@@ -186,7 +186,7 @@ function createSphere(x, y, z, r) {
             si = Math.sin(ai);
             ci = Math.cos(ai);
             shapeData.positions.push((si * sj) * r + x, cj * r + y, (ci * sj) * r + z);
-            shapeData.normals.push(si * sj, cj, ci * sj);
+            shapeData.normals.push(-si * sj, -cj, -ci * sj);
             shapeData.texCoords.push(Math.atan((cj * r) / si * sj), Math.acos(ci * sj));
         }
     }
