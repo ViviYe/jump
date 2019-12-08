@@ -126,12 +126,12 @@
         uniform float isCharacter;
 
         void main() {
-            float shininess = 100.0;
+            float shininess = 300.0;
 
             vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
-            vec3 lightPos2 = vec3(100000.0, 1000.0, 1.0);
+            vec3 lightPos2 = vec3(100000.0, 1000.0, 100.0);
 
             vec3 N = normalize(vNormal);
             vec3 L = normalize(lightPos - vertPos);
@@ -144,8 +144,8 @@
             vec3 color = texture2D(texture, vUv).rgb;
             float diffuseLambertian = max(dot(N, L), 0.0);
             float diffuseLambertian2 = max(dot(N, L2), 0.0);
-            float specularHighlight = pow(max(dot(V, reflect(-L, N)), 0.0), 100.0);
-            float specularHighlight2 = pow(max(dot(V, reflect(-L2, N)), 0.0), 100.0);
+            float specularHighlight = pow(max(dot(V, reflect(-L, N)), 0.0), shininess);
+            float specularHighlight2 =  pow(max(dot(V, reflect(-L2, N)), 0.0), shininess);
 
             if (isCharacter == 1.0) {
                 gl_FragColor = 2.0 * vec4(color * (diffuseLambertian + specularHighlight + diffuseLambertian2 + specularHighlight2), 1.0); 
@@ -879,8 +879,8 @@
                 maxRainHeight = 20;
                 transform_rain_2 = mat4.create();
                 rainDropSpeed = 0.008;
-                for (var x = Math.max(lastX - 5, 0); x < lastX + 8; x += Math.floor((Math.random() * 5) + 1)) {
-                    for (var y = Math.max(lastY - 5, 0); y < lastY + 8; y += Math.floor((Math.random() * 5) + 1)) {
+                for (var x = Math.max(lastX - 5, 0); x < lastX + 8; x += Math.floor((Math.random() * 3) + 1)) {
+                    for (var y = Math.max(lastY - 5, 0); y < lastY + 8; y += Math.floor((Math.random() * 3) + 1)) {
                         new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
                         rain.push(new_rainDrop);
                     }
