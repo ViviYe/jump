@@ -1058,40 +1058,40 @@ function createCharacter(gl, tex) {
                     }
 
                 } else if (control.mode == IS_MOVING) {
-                    // var movex = 0;
-                    // var movey = 0;
-                    // if (control.toPosition[1] > control.fromPosition[1]) {
-                    //     movey = 1;
-                    // } else if (control.toPosition[1] < control.fromPosition[1]) {
-                    //     movey = -1;
-                    // } else if (control.toPosition[0] > control.fromPosition[0]) {
-                    //     movex = 1;
-                    // } else if (control.toPosition[0] < control.fromPosition[0]) {
-                    //     movex = -1;
-                    // }
-                    // control.currentPosition[0] += movex * control.moveRate * elapsed;
-                    // control.currentPosition[1] += movey * control.moveRate * elapsed;
-                    // if (movex == 1.0) {
-                    //     if (control.currentPosition[0] > control.toPosition[0]) {
-                    //         control.currentPosition[0] = control.toPosition[0];
-                    //         control.mode = NO_CONTROL;
-                    //     }
-                    // } else if (movex == -1.0) {
-                    //     if (control.currentPosition[0] < control.toPosition[0]) {
-                    //         control.currentPosition[0] = control.toPosition[0];
-                    //         control.mode = NO_CONTROL;
-                    //     }
-                    // } else if (movey == 1.0) {
-                    //     if (control.currentPosition[1] > control.toPosition[1]) {
-                    //         control.currentPosition[1] = control.toPosition[1];
-                    //         control.mode = NO_CONTROL;
-                    //     }
-                    // } else if (movey == -1.0) {
-                    //     if (control.currentPosition[1] < control.toPosition[1]) {
-                    //         control.currentPosition[1] = control.toPosition[1];
-                    //         control.mode = NO_CONTROL;
-                    //     }
-                    // }
+                    var movex = 0;
+                    var movey = 0;
+                    if (control.toPosition[1] > control.fromPosition[1]) {
+                        movey = 1;
+                    } else if (control.toPosition[1] < control.fromPosition[1]) {
+                        movey = -1;
+                    } else if (control.toPosition[0] > control.fromPosition[0]) {
+                        movex = 1;
+                    } else if (control.toPosition[0] < control.fromPosition[0]) {
+                        movex = -1;
+                    }
+                    control.currentPosition[0] += movex * control.moveRate * elapsed;
+                    control.currentPosition[1] += movey * control.moveRate * elapsed;
+                    if (movex == 1.0) {
+                        if (control.currentPosition[0] > control.toPosition[0]) {
+                            control.currentPosition[0] = control.toPosition[0];
+                            control.mode = NO_CONTROL;
+                        }
+                    } else if (movex == -1.0) {
+                        if (control.currentPosition[0] < control.toPosition[0]) {
+                            control.currentPosition[0] = control.toPosition[0];
+                            control.mode = NO_CONTROL;
+                        }
+                    } else if (movey == 1.0) {
+                        if (control.currentPosition[1] > control.toPosition[1]) {
+                            control.currentPosition[1] = control.toPosition[1];
+                            control.mode = NO_CONTROL;
+                        }
+                    } else if (movey == -1.0) {
+                        if (control.currentPosition[1] < control.toPosition[1]) {
+                            control.currentPosition[1] = control.toPosition[1];
+                            control.mode = NO_CONTROL;
+                        }
+                    }
                 }
                 if (bouncing) {
                     bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
