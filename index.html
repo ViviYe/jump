@@ -250,6 +250,7 @@ function createCharacter(gl, tex) {
             var NO_ACTION = 0;
             var COMPRESSING = 1;
             var JUMPING = 2;
+            var COMING_BACK = 3;
 
             
 
@@ -526,36 +527,6 @@ function createCharacter(gl, tex) {
             }
             var compressedTime;
 
-            // webglCanvas.keydown(function (event) {
-
-            //     // if (event.key == "Shift") {
-            //     //     if (!prevShiftDown) {
-            //     //         compress_time = Date.now();
-            //     //         prevShiftDown = true;
-            //     //     }
-            //     // }
-
-            //     if (event.key == "Shift"){
-            //         control.state = COMPRESSING;
-            //         control.time = Date.now();
-            //     }
-            //     return false;
-
-            // });
-
-            // webglCanvas.keyup(function (event) {
-            //     // if (event.key == "Shift") {
-            //     //     prevShiftDown = false;
-            //     //     release_time = Date.now();
-            //     //     console.log(release_time - compress_time);
-            //     // }
-            //     if (event.key == "Shift"){
-            //         control.state = JUMPING;
-            //         control.time = Date.now();
-            //     }
-            //     return false;
-
-            // });
 
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
@@ -699,7 +670,7 @@ function createCharacter(gl, tex) {
             webglCanvas.keyup(function (event) {
 
                 if (event.key == "Shift") {
-                    control.state = JUMPING;
+                    control.state = COMING_BACK;
                     control.time = Date.now();
                     dropNewBox();
                     release_time = Date.now();
@@ -972,11 +943,31 @@ function createCharacter(gl, tex) {
                 control.state = NO_ACTION;
             }
 
-
+            var h;
+            var lasth;
+            var r;
+            var l;
 
             function jump(t, dir, compressedtime) {
-                if (t > 4) {
+                lasth = h;
+                h = (-1 * (2-t)*(2-t)+4)* 0.5;
+                console.log("height" + h);
+                if (h <= 0) {              
+                    var errormat = mat4.create();
+                    var error = vec3.create();
+
+                    if (curdir == 0){
+                    vec3.set(error,r, 0, 0);
+                    mat4.fromTranslation(errormat, error);
+                    transform_character = errormat;   
                     updateDropMatrix();
+                    }else {
+                    vec3.set(error,0, l, 0);
+                    mat4.fromTranslation(errormat, error);
+                    transform_character = errormat;   
+                    updateDropMatrix(); 
+                    }
+               
                 } else {       
                var  transMat = mat4.create();
                var rotateMat = mat4.create();
@@ -984,9 +975,8 @@ function createCharacter(gl, tex) {
                var axis = vec3.create();
                var x = t;
 
-            if (curdir == 0){
-               var h = (-1 * (2-x)*(2-x)+4)* 0.5;
-               var r = x*0.5;
+            if (curdir == 0){           
+               r = x*0.5;
                var angle = Math.PI*2*(t/4.0);
                var move = mat4.create();
                vec3.set(axis, 0, 1, 0);
@@ -997,23 +987,16 @@ function createCharacter(gl, tex) {
                mat4.multiply(transMat, transMat, rotateMat);
                transform_character = transMat;
 
-             }else if (curdir == 1){
+             }else {
               
                var h = (-1 * (2-x)*(2-x)+4) * 0.5;
-               var l = x*0.5;
+               l = x*0.5;
                vec3.set(shift, 0, l, h);
                mat4.fromTranslation(transMat, shift);
                transform_character = transMat;
 
-                }else if (curdir ==3){
-                    
-               vec3.set(shift, 0, 0, t);
-               mat4.fromTranslation(transMat, shift);
-               transform_character = transMat;
-
-                }else {
-                    
                 }
+               
             }
             }
 
@@ -1023,6 +1006,18 @@ function createCharacter(gl, tex) {
                 vec3.set(shift, 0, 0, -t / 10);
                 mat4.fromTranslation(transMat, shift);
                 transform_character = transMat;
+            }
+
+
+            function comeback(t) {
+                console.log(t);
+                var transMat = mat4.create();
+                var shift = vec3.create();
+                vec3.set(shift, 0, 0, t / 10);
+                mat4.fromTranslation(transMat, shift);
+                transform_character = transMat;
+                control.state = JUMPING;
+                control.time = Date.now();
             }
 
 
@@ -1108,11 +1103,13 @@ function createCharacter(gl, tex) {
                     // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 }
-
+                console.log(control.state);
                 if (control.state == JUMPING){
                     jump((Date.now() - control.time)/500, dir, 0);
                 }else if (control.state == COMPRESSING){
                     compress((Date.now() - control.time)/300);
+                }else if (control.state == COMING_BACK){
+                    comeback((release_time - compress_time)/300);
                 }else {
 
                 }
