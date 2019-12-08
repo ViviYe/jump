@@ -179,7 +179,7 @@
         var transform_rain_3 = mat4.create();
 
         var rain = [];
-
+        var curdir;
         var rainHeight = 0;
         var maze = null;
         var shouldUpdate = false;
@@ -187,6 +187,7 @@
             maze = getInitWorld();
             shouldUpdate = true;
         }
+
         updateMaze();
         $("#updateMazeButton").click(updateMaze);
 
@@ -656,6 +657,7 @@
                     control.state = COMPRESSING;
                     control.time = Date.now();
                     if (!prevShiftDown) {
+                        curdir = dir;
                         control.state = COMPRESSING;
                         control.time = Date.now();
                         compress_time = Date.now();
@@ -952,28 +954,30 @@
 
 
             function jump(t, dir, compressedtime) {
-                if (t > 2) {
+                if (t > 4) {
                     updateDropMatrix();
                 } else {       
                var  transMat = mat4.create();
                var  shift = vec3.create();
                var x = t;
-            if (dir == 0){
-               var h = 4-x*x;
-               var r = x*0.3;
+               console.log(t);
+
+            if (curdir == 0){
+               var h = (-1 * (2-x)*(2-x)+4)* 0.5;
+               var r = x*0.5;
                vec3.set(shift, r, 0, h);
                mat4.fromTranslation(transMat, shift);
                transform_character = transMat;
 
-                }else if (dir == 1){
+             }else if (curdir == 1){
               
-               var h = 0;
+               var h = (-1 * (2-x)*(2-x)+4) * 0.5;
                var l = x*0.5;
                vec3.set(shift, 0, l, h);
                mat4.fromTranslation(transMat, shift);
                transform_character = transMat;
 
-                }else if (dir ==3){
+                }else if (curdir ==3){
                     
                vec3.set(shift, 0, 0, t);
                mat4.fromTranslation(transMat, shift);
@@ -1077,7 +1081,7 @@
 
                 }
 
-                console.log("dir" +dir);
+                console.log("dir" +curdir);
                 if (control.state == JUMPING){
                     jump((Date.now() - control.time)/500, dir, 0);
                 }else if (control.state == COMPRESSING){
