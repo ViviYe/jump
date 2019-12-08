@@ -200,22 +200,22 @@
 
         vec3.set(initshift, 0, 0, 13);
         drop_character = mat4.fromTranslation(drop_character, initshift);
-       
+
         var transform_character = mat4.create();
         var rotate_character = mat4.create();
         var init = true;
 
 
-function createCharacter(gl, tex) {
-    var character = {
-        shapes: [],
-        texture: tex
-    }
-    console.log("updated");
-    character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
-    character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
-    return character;
-}
+        function createCharacter(gl, tex) {
+            var character = {
+                shapes: [],
+                texture: tex
+            }
+            console.log("updated");
+            character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
+            character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
+            return character;
+        }
 
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
@@ -252,7 +252,7 @@ function createCharacter(gl, tex) {
             var JUMPING = 2;
             var COMING_BACK = 3;
 
-            
+
 
             var control = {
                 mode: NO_CONTROL,
@@ -721,7 +721,7 @@ function createCharacter(gl, tex) {
                     var drop = vec3.create();
                     vec3.set(drop, 0, 0, -0.008);
                     var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
-                    mat4.multiply(drop_character,drop_character, droptranslation);
+                    mat4.multiply(drop_character, drop_character, droptranslation);
                     window.requestAnimationFrame(() => dropOnce(transmat, drop_character));
                 }
             }
@@ -951,59 +951,59 @@ function createCharacter(gl, tex) {
             function jump(t, dir, compressedtime) {
                 console.log(compressedtime);
                 lasth = h;
-                h = (-1 * (2-t)*(2-t)+4)* 0.5;
+                h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
                 console.log("height" + h);
-                if (h <= 0) {              
+                if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
 
-                    if (curdir == 0){
-                    vec3.set(error,r, 0, 0);
-                    mat4.fromTranslation(errormat, error);
-                    transform_character = errormat;   
-                    updateDropMatrix();
-                    }else {
-                    vec3.set(error,0, l, 0);
-                    mat4.fromTranslation(errormat, error);
-                    transform_character = errormat;   
-                    updateDropMatrix(); 
+                    if (curdir == 0) {
+                        vec3.set(error, r, 0, 0);
+                        mat4.fromTranslation(errormat, error);
+                        transform_character = errormat;
+                        updateDropMatrix();
+                    } else {
+                        vec3.set(error, 0, l, 0);
+                        mat4.fromTranslation(errormat, error);
+                        transform_character = errormat;
+                        updateDropMatrix();
                     }
-               
-                } else {       
-               var  transMat = mat4.create();
-               var rotateMat = mat4.create();
-               var  shift = vec3.create();
-               var axis = vec3.create();
-               var x = t;
 
-            if (curdir == 0){           
-               r = x*compressedtime*0.2;
-               var angle = Math.PI*2*(t/4.0);
-               var move = mat4.create();
-               vec3.set(axis, 0, 1, 0);
-               vec3.set(shift, r, 0, h);
-               mat4.fromRotation(rotateMat, angle, axis)
-               mat4.fromTranslation(move, shift);
-               mat4.multiply(transMat, move, transMat);
-               mat4.multiply(transMat, transMat, rotateMat);
-               transform_character = transMat;
+                } else {
+                    var transMat = mat4.create();
+                    var rotateMat = mat4.create();
+                    var shift = vec3.create();
+                    var axis = vec3.create();
+                    var x = t;
 
-             }else {
-              
-               l = x*compressedtime*0.2;
-               var angle = -1 * Math.PI*2*(t/4.0);
-               var move = mat4.create();
-               vec3.set(axis, 1, 0, 0);
-               vec3.set(shift, 0, l, h);
-               mat4.fromRotation(rotateMat, angle, axis)
-               mat4.fromTranslation(move, shift);
-               mat4.multiply(transMat, move, transMat);
-               mat4.multiply(transMat, transMat, rotateMat);
-               transform_character = transMat;
+                    if (curdir == 0) {
+                        r = x * compressedtime * 0.2;
+                        var angle = Math.PI * 2 * (t / 4.0);
+                        var move = mat4.create();
+                        vec3.set(axis, 0, 1, 0);
+                        vec3.set(shift, r, 0, h);
+                        mat4.fromRotation(rotateMat, angle, axis)
+                        mat4.fromTranslation(move, shift);
+                        mat4.multiply(transMat, move, transMat);
+                        mat4.multiply(transMat, transMat, rotateMat);
+                        transform_character = transMat;
+
+                    } else {
+
+                        l = x * compressedtime * 0.2;
+                        var angle = -1 * Math.PI * 2 * (t / 4.0);
+                        var move = mat4.create();
+                        vec3.set(axis, 1, 0, 0);
+                        vec3.set(shift, 0, l, h);
+                        mat4.fromRotation(rotateMat, angle, axis)
+                        mat4.fromTranslation(move, shift);
+                        mat4.multiply(transMat, move, transMat);
+                        mat4.multiply(transMat, transMat, rotateMat);
+                        transform_character = transMat;
+
+                    }
 
                 }
-               
-            }
             }
 
             function compress(t) {
@@ -1110,13 +1110,13 @@ function createCharacter(gl, tex) {
 
                 }
                 console.log(control.state);
-                if (control.state == JUMPING){
-                    jump((Date.now() - control.time)/500, dir, (release_time - compress_time)/300);
-                }else if (control.state == COMPRESSING){
-                    compress((Date.now() - control.time)/300);
-                }else if (control.state == COMING_BACK){
-                    comeback((release_time - compress_time)/300);
-                }else {
+                if (control.state == JUMPING) {
+                    jump((Date.now() - control.time) / 150, dir, (release_time - compress_time) / 300);
+                } else if (control.state == COMPRESSING) {
+                    compress((Date.now() - control.time) / 300);
+                } else if (control.state == COMING_BACK) {
+                    comeback((release_time - compress_time) / 300);
+                } else {
 
                 }
                 dropOnce(transform_character, drop_character);
