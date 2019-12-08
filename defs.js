@@ -67,8 +67,8 @@ var character = [];
 
 // init the first block
 var dir = 0;
-var lastX = 5;
-var lastY = 5;
+var lastX = 0;
+var lastY = 0;
 var dis = 0;
 
 

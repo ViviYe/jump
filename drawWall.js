@@ -303,15 +303,16 @@ function createCube(gl, x, y, z, tex) {
 }
 
 
-function createCharacter(gl, tex) {
-    var character = {
-        shapes: [],
-        texture: tex
-    }
-    character.shapes.push(createShape(gl, createSphere(5.5, 5.5, 15, 0.15)));
-    character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
-    return character;
-}
+// function createCharacter(gl, tex) {
+//     var character = {
+//         shapes: [],
+//         texture: tex
+//     }
+//     console.log("updated");
+//     character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
+//     character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
+//     return character;
+// }
 
 function createGround(gl, x, y, z) {
     shapes = [];
