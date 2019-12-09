@@ -98,5 +98,7 @@ function createTexture(gl, img) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     // Step 5: Creating a mipmap so that the texture can be anti-aliased.
     gl.generateMipmap(gl.TEXTURE_2D);
+
     return texture;
 }
+

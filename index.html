@@ -115,6 +115,21 @@
         }
     </script>
 
+    <script id="skyboxVertexShader" type="x-shader/x-vertex">
+        attribute vec3 vert_position;
+        varying vec3 vNormal; // normal at the vertex in eye space
+
+        uniform mat4 xform_projMat;
+        uniform mat4 xform_viewMat;
+        uniform mat4 xform_modelMat;
+        uniform mat4 transform_Mat;
+
+        void main() {
+            gl_Position = xform_projMat * xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
+            vNormal = normalize(vert_position);
+        }
+    </script>
+
     <script id="fragmentShader0" type="x-shader/x-fragment">
         precision highp float;
         varying vec2 vUv;
@@ -165,6 +180,18 @@
         }
     </script>
 
+    <script id="skyboxFragmentShader" type="x-shader/x-fragment">
+        precision highp float;
+
+        uniform samplerCube uTexture;
+        
+        varying vec3 vNormal;
+        
+        void main() {
+            gl_FragColor = textureCube(uTexture, vNormal);
+        }
+    </script>
+
 
     <script>
 
@@ -189,6 +216,343 @@
         var rotate_character = mat4.create();
         var init = true;
 
+        function createShapeData() {
+    return {
+        positions: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    }
+}
+
+function createNorthWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, -1.0, 0.0);
+    }
+
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    return shapeData;
+}
+
+function createSouthWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 1.0, 0.0);
+    }
+
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    return shapeData;
+}
+
+
+function createWestWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(1.0, 0.0, 0.0);
+    }
+
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    return shapeData;
+}
+
+
+function createEastWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = 0;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(-1.0, 0.0, 0.0);
+    }
+
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+
+
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+
+
+function createFloor(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, 1.0);
+    }
+
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    return shapeData;
+}
+
+function createBigFloor(x, y, z, delta) {
+
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, 1.0);
+    }
+
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x + delta, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    shapeData.positions.push(x + delta, y + delta, z);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x, y + delta, z);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    return shapeData;
+}
+
+
+function createGround(gl, x, y, z) {
+    shapes = [];
+    shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
+    return shapes;
+}
+
+function createSphere(x, y, z, r) {
+    // x, y, z are the center
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    var SPHERE_DIV = 30;
+    var i, ai, si, ci;
+    var j, aj, sj, cj;
+    var p1, p2;
+
+    for (j = 0; j <= SPHERE_DIV; j++) {
+        aj = j * Math.PI / SPHERE_DIV;
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        for (i = 0; i <= SPHERE_DIV; i++) {
+            ai = i * 2 * Math.PI / SPHERE_DIV;
+            si = Math.sin(ai);
+            ci = Math.cos(ai);
+            shapeData.positions.push((si * sj) * r + x, cj * r + y, (ci * sj) * r + z);
+            shapeData.normals.push(si * sj, cj, ci * sj);
+            shapeData.texCoords.push(Math.atan((cj * r) / si * sj), Math.acos(ci * sj));
+        }
+    }
+    for (j = 0; j < SPHERE_DIV; j++) {
+        for (i = 0; i < SPHERE_DIV; i++) {
+            p1 = j * (SPHERE_DIV + 1) + i;
+            p2 = p1 + (SPHERE_DIV + 1);
+            shapeData.indices.push(p1, p2, p1 + 1, p1 + 1, p2, p2 + 1);
+        }
+    }
+
+    return shapeData;
+}
+
+
+
+function createCylinder(x, y, z, h, r) {
+    var div = 0.75;
+    var shapeData = createShapeData();
+    var CYLINDER_DIV = 30;
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        shapeData.positions.push(sj * r + x, cj * r + y, z);
+        shapeData.normals.push(sj, cj, 0.2);
+        shapeData.texCoords.push(aj, z);
+    }
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        shapeData.positions.push(sj * r * div + x, cj * r * div + y, z + h);
+        shapeData.normals.push(sj, cj, 0.2);
+        shapeData.texCoords.push(aj, z + h);
+    }
+    for (j = 0; j < CYLINDER_DIV; j++) {
+        var cur = j;
+        var curshift = (j + 1) % CYLINDER_DIV;
+        var next = cur + CYLINDER_DIV;
+        var nextshift = curshift + CYLINDER_DIV;
+        shapeData.indices.push(cur, curshift, next, next, curshift, nextshift);
+    }
+    return shapeData
+}
+
+function createRoof(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, -1.0);
+    }
+
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+
+function createShadow(x, y, z) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, -1.0);
+    }
+
+    shapeData.positions.push(x - 0.2, y - 0.2, z + 0.01);
+    shapeData.texCoords.push(0.0, 0.0);
+
+    shapeData.positions.push(x + 0.8, y - 0.2, z + 0.01);
+    shapeData.texCoords.push(0.0, 1.0);
+
+    shapeData.positions.push(x + 1, y, z + 0.01);
+    shapeData.texCoords.push(1.0, 1.0);
+
+    shapeData.positions.push(x, y + 1, z + 0.01);
+    shapeData.texCoords.push(1.0, 0.0);
+
+    return shapeData;
+
+}
+
+
+function createCube(gl, x, y, z, tex, length) {
+    var cube = {
+        shapes: [],
+        texture: tex,
+        shadow: []
+    }
+    cube.shapes.push(createShape(gl, createNorthWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createSouthWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createEastWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createWestWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createFloor(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createRoof(x, y, z, length)));
+    cube.shadow.push(createShape(gl, createShadow(x, y, z)));
+    return cube;
+}
+
+
+function createCharacter(gl, tex) {
+    var character = {
+        shapes: [],
+        texture: tex
+    }
+    character.shapes.push(createShape(gl, createSphere(5.5, 5.5, 15, 0.15)));
+    character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
+    return character;
+}
+
+function createGround(gl, x, y, z) {
+    shapes = [];
+    shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
+    return shapes;
+}
+
+        function createSkyboxTexture(gl, xpos, xneg, ypos, yneg, zpos, zneg) {
+            texID = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texID);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, xpos);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, xneg);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ypos);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, yneg);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, zpos);
+            gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, zneg);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            return texID;
+        }
 
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
@@ -210,6 +574,15 @@
             // rain texture
             queue.loadManifest(["data/rain.png", { id: "rain", src: "data/rain.png" }]);
 
+            // skybox texture
+            queue.loadManifest(["data/skybox/ft.jpg", { id: "xpos", src: "data/skybox/ft.jpg" }]);
+            queue.loadManifest(["data/skybox/bk.jpg", { id: "xneg", src: "data/skybox/bk.jpg" }]);
+            queue.loadManifest(["data/skybox/lf.jpg", { id: "ypos", src: "data/skybox/lf.jpg" }]);
+            queue.loadManifest(["data/skybox/lf.jpg", { id: "yneg", src: "data/skybox/rt.jpg" }]);
+            queue.loadManifest(["data/skybox/up.jpg", { id: "zpos", src: "data/skybox/up.jpg" }]);
+            queue.loadManifest(["data/skybox/dn.jpg", { id: "zneg", src: "data/skybox/dn.jpg" }]);
+
+
             queue.on("complete", function (event) {
                 runWebGL(queue);
             });
@@ -219,14 +592,14 @@
             var NO_CONTROL = 0;
             var IS_ROTATING = 1;
             var IS_MOVING = 2;
-           
-            var NO_ACTION=0;
-            var COMPRESSING=1;
-            var JUMPING =2;
-          
+
+            var NO_ACTION = 0;
+            var COMPRESSING = 1;
+            var JUMPING = 2;
+
             var control = {
                 mode: NO_CONTROL,
-                state:NO_ACTION,
+                state: NO_ACTION,
                 time: 0,
                 rotateRate: 0.005, //0.004,
                 moveRate: 0.005,
@@ -303,6 +676,10 @@
 
             var textureRain = createTexture(gl, queue.getResult("rain"));
 
+            
+            var textureSkybox = createSkyboxTexture(gl, queue.getResult("xpos"), queue.getResult("xneg"),
+                queue.getResult("ypos"), queue.getResult("yneg"), queue.getResult("zpos"), queue.getResult("zneg"));
+
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -354,6 +731,28 @@
                 gl.vertexAttribPointer(program1.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
                 gl.enableVertexAttribArray(program0.vert_normal);
                 gl.vertexAttribPointer(program1.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
+                gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                gl.useProgram(null);
+            };
+
+            programSky = createGlslProgram(gl, "skyboxVertexShader", "skyboxFragmentShader");
+            programSky.texture = gl.getUniformLocation(programSky, "uTexture");
+            programSky.xform_projMat = gl.getUniformLocation(programSky, "xform_projMat");
+            programSky.xform_viewMat = gl.getUniformLocation(programSky, "xform_viewMat");
+            programSky.xform_modelMat = gl.getUniformLocation(programSky, "xform_modelMat");
+            programSky.vert_position = gl.getAttribLocation(programSky, "vert_position");
+            programSky.transform_Mat = gl.getUniformLocation(programSky, "transform_Mat");
+
+            programSky.draw = function (gl, shape, initialize) {
+                gl.useProgram(programSky);
+                initialize();
+                gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
+                gl.enableVertexAttribArray(programSky.vert_position);
+                gl.vertexAttribPointer(programSky.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, null);
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
                 gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
@@ -497,37 +896,6 @@
             }
             var compressedTime;
 
-            // webglCanvas.keydown(function (event) {
-
-            //     // if (event.key == "Shift") {
-            //     //     if (!prevShiftDown) {
-            //     //         compress_time = Date.now();
-            //     //         prevShiftDown = true;
-            //     //     }
-            //     // }
-
-            //     if (event.key == "Shift"){
-            //         control.state = COMPRESSING;
-            //         control.time = Date.now();
-            //     }
-            //     return false;
-
-            // });
-
-            // webglCanvas.keyup(function (event) {
-            //     // if (event.key == "Shift") {
-            //     //     prevShiftDown = false;
-            //     //     release_time = Date.now();
-            //     //     console.log(release_time - compress_time);
-            //     // }
-            //     if (event.key == "Shift"){
-            //         control.state = JUMPING;
-            //         control.time = Date.now();
-            //     }
-            //     return false;
-
-            // });
-
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
@@ -573,6 +941,35 @@
 
             }
 
+            function drawSkybox(gl, shape, texture, transmat) {
+                programSky.draw(gl, shape, function () {
+                    if (programSky.xform_projMat != null) {
+                        gl.uniformMatrix4fv(programSky.xform_projMat, false, getProjMatrix());
+                    }
+                    if (programSky.xform_viewMat != null) {
+                        gl.uniformMatrix4fv(programSky.xform_viewMat, false, getViewMatrix());
+                    }
+                    if (programSky.xform_modelMat != null) {
+                        gl.uniformMatrix4fv(programSky.xform_modelMat, false, getModelMatrix());
+                    }
+                    if (transmat != null) {
+                        if (programSky.transform_Mat != null) {
+                            gl.uniformMatrix4fv(programSky.transform_Mat, false, transmat);
+
+                        }
+                    }
+                    if (programSky.texture != null) {
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.uniform1i(programSky.texture, 0);
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                    }
+                });
+
+            }
+
             var dropSpeed = 0.008;
             var rainDropSpeed = 0.008;
             function resetCubeMatrices() {
@@ -606,7 +1003,7 @@
                     lastY += dis;
                 } else randDirAndDist();
 
-                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
+                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
@@ -667,7 +1064,7 @@
             });
 
             webglCanvas.keyup(function (event) {
-               
+
                 if (event.key == "Shift") {
                     control.state = JUMPING;
                     control.time = Date.now();
@@ -704,7 +1101,7 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-                new_cube = createCube(gl, 5, 5, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
+                new_cube = createCube(gl, 5, 5, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, -15, -15, 0);
                 character = createCharacter(gl, textureCharacter);
                 dropNewBox();
@@ -734,17 +1131,17 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
-              //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
-                ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
+                //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
+             //   ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
 
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false, transform_matrix_3));
-               // (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
+                // (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
                 if (current_cube.length != 0) {
                     //console.log(compressmat);
                     (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
-                 //   (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
+                    //   (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
                 }
-                new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
+               // new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
             }
 
 
@@ -866,6 +1263,52 @@
                 return rainDrop;
             }
 
+            function createSkyShape(gl, shapeData) {
+                var shape = {};
+                var vertexData = [];
+                var vertexCount = shapeData.positions.length / 3;
+                var i;
+                for (i = 0; i < vertexCount; i++) {
+                    vertexData.push(shapeData.positions[3 * i], shapeData.positions[3 * i + 1], shapeData.positions[3 * i + 2]);
+                }
+                var vertexArray = new Float32Array(vertexData);
+                var vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                var indexArray = new Uint16Array(shapeData.indices);
+                var indexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexArray, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                shape.vertexBuffer = vertexBuffer;
+                shape.indexBuffer = indexBuffer;
+                shape.size = shapeData.indices.length;
+                shape.stride = 4 * (3);
+                shape.positionOffset = 4 * 0;
+                return shape;
+            }
+
+            function createSkyCube(gl, x, y, z, length) {
+                var cube = [];
+                //var positions = 
+                cube.push(createSkyShape(gl, createNorthWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createSouthWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createEastWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createWestWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createFloor(x, y, z, length)));
+                cube.push(createSkyShape(gl, createRoof(x, y, z, length)));
+               // console.log(cube);
+                return cube;
+            }
+        
+
+            function drawSky(gl, tex) {
+
+                var skybox = createSkyCube(gl, -15, -15, -15, 30);
+                skybox.forEach(skyboxShape => drawSkybox(gl, skyboxShape, tex, mat4.create()));
+            }
+
             function resetRainDropMatrices() {
                 rain = [];
                 rainHeight = 0;
@@ -880,107 +1323,88 @@
                 }
             }
 
-            function randDirAndDist() {
-                var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
-                dis = Math.random() * (+3.5 - +1.5) + +1.5;
-                if (dir == 0 && randDir == 0 || dir == 1 && randDir == 3) {
-                    dir = 0;
-                    lastX += dis;
-                } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
-                    dir = 1;
-                    lastY += dis;
-                    // } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
-                    //     dir = 3;
-                    //     lastY -= dis;
-                } else randDirAndDist();
-
-                new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)]);
-
-                new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
-            }
-
             setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
 
-            $("#webglCanvas").dblclick(function (event) {
-                resetCubeMatrices();
-                randDirAndDist();
-                currentX = Math.round(control.currentPosition[0] - 0.5);
-                currentY = Math.round(control.currentPosition[1] - 0.5);
-                dx = Math.round(Math.cos(dir * Math.PI / 2));
-                dy = Math.round(Math.sin(dir * Math.PI / 2));
-                var targetPos;
-                if (dir == 0)
-                    targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
-                if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
-                if (dir == 3)
-                    targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
+            // $("#webglCanvas").dblclick(function (event) {
+            //     resetCubeMatrices();
+            //     randDirAndDist();
+            //     currentX = Math.round(control.currentPosition[0] - 0.5);
+            //     currentY = Math.round(control.currentPosition[1] - 0.5);
+            //     dx = Math.round(Math.cos(dir * Math.PI / 2));
+            //     dy = Math.round(Math.sin(dir * Math.PI / 2));
+            //     var targetPos;
+            //     if (dir == 0)
+            //         targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
+            //     if (dir == 1)
+            //         targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
+            //     if (dir == 3)
+            //         targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
 
-                control.mode = IS_MOVING;
-                control.fromPosition = vec3.fromValues(
-                    currentX + 0.5,
-                    currentY + 0.5,
-                    0.0
-                );
-                direction = vec3.fromValues(
-                    dx,
-                    dy,
-                    0.0
-                );
-                control.toPosition = vec3.fromValues(
-                    targetPos[0] + 0.5,
-                    targetPos[1] + 0.5,
-                    0.0
-                )
-            });
+            //     control.mode = IS_MOVING;
+            //     control.fromPosition = vec3.fromValues(
+            //         currentX + 0.5,
+            //         currentY + 0.5,
+            //         0.0
+            //     );
+            //     direction = vec3.fromValues(
+            //         dx,
+            //         dy,
+            //         0.0
+            //     );
+            //     control.toPosition = vec3.fromValues(
+            //         targetPos[0] + 0.5,
+            //         targetPos[1] + 0.5,
+            //         0.0
+            //     )
+            // });
 
-            function updateDropMatrix(){
-                var newdrop = mat4.create();           
-                    mat4.multiply(newdrop, transform_character, drop_character);
-                    transform_character = mat4.create();
-                    drop_character = newdrop;
-                    control.state = NO_ACTION;
+            function updateDropMatrix() {
+                var newdrop = mat4.create();
+                mat4.multiply(newdrop, transform_character, drop_character);
+                transform_character = mat4.create();
+                drop_character = newdrop;
+                control.state = NO_ACTION;
             }
 
-        
 
-            function jump(t, dir, compressedtime){
+
+            function jump(t, dir, compressedtime) {
                 if (t > 2) {
                     updateDropMatrix();
                 } else {
-           
-               var  transMat = mat4.create();
-               var  shift = vec3.create();
-                if (dir == 0){
-              
-               vec3.set(shift, 0, 0, t);
-               mat4.fromTranslation(transMat, shift);
-               transform_character = transMat;
 
-                }else if (dir == 1){
+                    var transMat = mat4.create();
+                    var shift = vec3.create();
+                    if (dir == 0) {
 
-               vec3.set(shift, 0, 0, t);
-               mat4.fromTranslation(transMat, shift);
-               transform_character = transMat;
+                        vec3.set(shift, 0, 0, t);
+                        mat4.fromTranslation(transMat, shift);
+                        transform_character = transMat;
 
-                }else if (dir ==3){
-                
-               vec3.set(shift, 0, 0, t);
-               mat4.fromTranslation(transMat, shift);
-               transform_character = transMat;
+                    } else if (dir == 1) {
 
-                }else {
-                    
+                        vec3.set(shift, 0, 0, t);
+                        mat4.fromTranslation(transMat, shift);
+                        transform_character = transMat;
+
+                    } else if (dir == 3) {
+
+                        vec3.set(shift, 0, 0, t);
+                        mat4.fromTranslation(transMat, shift);
+                        transform_character = transMat;
+
+                    } else {
+
+                    }
                 }
             }
-            }
 
-            function compress(t){
-               var  transMat = mat4.create();
-               var  shift = vec3.create();
-               vec3.set(shift, 0, 0, -t/10);
-               mat4.fromTranslation(transMat, shift);
-               transform_character = transMat;
+            function compress(t) {
+                var transMat = mat4.create();
+                var shift = vec3.create();
+                vec3.set(shift, 0, 0, -t / 10);
+                mat4.fromTranslation(transMat, shift);
+                transform_character = transMat;
             }
 
 
@@ -1051,6 +1475,8 @@
                         }
                     }
                 }
+                
+                drawSky(gl, textureSkybox);
                 if (bouncing) {
                     bounce(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2));
                 } else if (prevShiftDown) {
@@ -1058,21 +1484,21 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-               // window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
+                // window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
 
                 if (raining) {
                     // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
                     dropRain(mat4.clone(transform_rain_2));
-                // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
+                    // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 }
 
-                console.log(control.state);
-                if (control.state == JUMPING){
-                    jump((Date.now() - control.time)/500, 0, 0);
-                }else if (control.state == COMPRESSING){
-                    compress((Date.now() - control.time)/300);
-                }else {
+                // console.log(control.state);
+                if (control.state == JUMPING) {
+                    jump((Date.now() - control.time) / 500, 0, 0);
+                } else if (control.state == COMPRESSING) {
+                    compress((Date.now() - control.time) / 300);
+                } else {
 
                 }
                 dropOnce(transform_character, drop_character);
