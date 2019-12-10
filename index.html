@@ -211,7 +211,7 @@
                 shapes: [],
                 texture: tex
             }
-            console.log("updated");
+            // console.log("updated");
             character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
             character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
             return character;
@@ -369,10 +369,13 @@
             program1.xform_projMat = gl.getUniformLocation(program1, "xform_projMat");
             program1.xform_viewMat = gl.getUniformLocation(program1, "xform_viewMat");
             program1.xform_modelMat = gl.getUniformLocation(program1, "xform_modelMat");
+            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
+            program1.xform_normalMat = gl.getUniformLocation(program1, "xform_normalMat");
+            program1.xform_scaleMat = gl.getUniformLocation(program1, "xform_scaleMat");
             program1.vert_position = gl.getAttribLocation(program1, "vert_position");
             program1.vert_texCoord = gl.getAttribLocation(program1, "vert_texCoord");
             program1.vert_normal = gl.getAttribLocation(program1, "vert_normal");
-            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
+            program1.isCharacter = gl.getUniformLocation(program1, "isCharacter");
 
             program1.draw = function (gl, shape, initialize) {
                 gl.useProgram(program1);
@@ -527,6 +530,52 @@
             }
             var compressedTime;
 
+
+
+            function drawShadow(gl, shape, texture, transmat, isCharacter, scalemat) {
+                program1.draw(gl, shape, function () {
+                    if (program1.xform_projMat != null) {
+                        gl.uniformMatrix4fv(program1.xform_projMat, false, getProjMatrix());
+                    }
+                    if (program1.xform_viewMat != null) {
+                        gl.uniformMatrix4fv(program1.xform_viewMat, false, getViewMatrix());
+                    }
+                    if (program1.xform_modelMat != null) {
+                        gl.uniformMatrix4fv(program1.xform_modelMat, false, getModelMatrix());
+                    }
+                    if (transmat != null) {
+                        if (program0.transform_Mat != null) {
+                            gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
+
+                        }
+                    }
+                    if (scalemat != null) {
+                        if (program0.xform_scaleMat != null) {
+                            gl.uniformMatrix4fv(program1.xform_scaleMat, false, scalemat);
+                        }
+                    }
+                    if (program0.xform_normalMat != null) {
+                        gl.uniformMatrix4fv(program1.xform_normalMat, false, getNormalMatrix());
+                    }
+                    if (program0.texture != null) {
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.uniform1i(program1.texture, 0);
+                    }
+                    if (program1.isCharacter != null) {
+                        if (isCharacter) {
+                            gl.uniform1f(program1.isCharacter, 1.0);
+                        } else {
+                            gl.uniform1f(program1.isCharacter, 0.0);
+                        }
+                    }
+                });
+
+            }
 
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
@@ -949,10 +998,10 @@
             var l;
 
             function jump(t, dir, compressedtime) {
-                console.log(compressedtime);
+                // console.log(compressedtime);
                 lasth = h;
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
-                console.log("height" + h);
+                // console.log("height" + h);
                 if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
@@ -1016,7 +1065,7 @@
 
 
             function comeback(t) {
-                console.log(t);
+                // console.log(t);
                 var transMat = mat4.create();
                 var shift = vec3.create();
                 vec3.set(shift, 0, 0, t / 10);
@@ -1109,7 +1158,7 @@
                     // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 }
-                console.log(control.state);
+                // console.log(control.state);
                 if (control.state == JUMPING) {
                     jump((Date.now() - control.time) / 150, dir, (release_time - compress_time) / 300);
                 } else if (control.state == COMPRESSING) {
