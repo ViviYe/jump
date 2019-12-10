@@ -82,36 +82,13 @@
     </script>
 
     <script id="vertexShader1" type="x-shader/x-vertex">
-        attribute vec3 vert_position;
-        attribute vec2 vert_texCoord;
-        attribute vec3 vert_normal;
+        attribute vec3 aVertexPosition;
 
-        varying vec2 vUv;
-        varying vec3 vNormal; // normal at the vertex in eye space
-        varying vec4 vPosition; // vertex position in eye space
-        varying vec3 vertPos;
-
-        uniform mat4 xform_projMat;
-        uniform mat4 xform_viewMat;
-        uniform mat4 xform_modelMat;
-        uniform mat4 transform_Mat;
-        uniform mat4 xform_normalMat;
-        uniform mat4 xform_rotMat;
-        uniform mat4 xform_scaleMat;
-        uniform float isCharacter;
-
-        void main() {
-            // Calculate point in eye space
-            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-    
-            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-            vertPos = vec3(vertPos4) / vertPos4.w;
-
-            // Calculate projected point 
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
-            
-            vNormal = normalize(vert_normal);
-            vUv = vert_texCoord;
+        uniform mat4 uPMatrix;
+        uniform mat4 uMVMatrix;
+        
+        void main (void) {
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         }
     </script>
 
@@ -157,18 +134,32 @@
     </script>
 
     <script id="fragmentShader1" type="x-shader/x-fragment">
-        precision highp float;
-        varying vec2 vUv;
-        varying vec3 vNormal; // fragment normal in eye space
-        varying vec4 vPosition; // fragment position in eye space
-        varying vec3 vertPos;
+        precision mediump float;
 
-        uniform sampler2D texture;
-        uniform float isCharacter;
-
-        void main() {
-            vec3 color = texture2D(texture, vUv).rgb;
-            gl_FragColor = vec4(color, 1.0);
+        vec4 encodeFloat (float depth) {
+          const vec4 bitShift = vec4(
+            256 * 256 * 256,
+            256 * 256,
+            256,
+            1.0
+          );
+          const vec4 bitMask = vec4(
+            0,
+            1.0 / 256.0,
+            1.0 / 256.0,
+            1.0 / 256.0
+          );
+          vec4 comp = fract(depth * bitShift);
+          comp -= comp.xxyz * bitMask;
+          return comp;
+        }
+        
+        void main (void) {
+          // Encode the distance into the scene of this fragment.
+          // We'll later decode this when rendering from our camera's
+          // perspective and use this number to know whether the fragment
+          // that our camera is seeing is inside of our outside of the shadow
+          gl_FragColor = encodeFloat(gl_FragCoord.z);
         }
     </script>
 
@@ -211,7 +202,6 @@
                 shapes: [],
                 texture: tex
             }
-            console.log("updated");
             character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
             character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
             return character;
@@ -949,10 +939,8 @@
             var l;
 
             function jump(t, dir, compressedtime) {
-                console.log(compressedtime);
                 lasth = h;
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
-                console.log("height" + h);
                 if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
@@ -1016,7 +1004,6 @@
 
 
             function comeback(t) {
-                console.log(t);
                 var transMat = mat4.create();
                 var shift = vec3.create();
                 vec3.set(shift, 0, 0, t / 10);
