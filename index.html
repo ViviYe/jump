@@ -604,7 +604,7 @@
 
             var dropSpeed = 0.008;
             var rainDropSpeed = 0.008;
-            var snowDropSpeed = 0.001;
+            var snowDropSpeed = 0.00008;
 
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
@@ -693,10 +693,12 @@
                 // if press R, then rain
                 if (event.keyCode == "82") {
                     raining = !raining;
+                    if (raining) snowing = false;
                 }
                 // if press S, then snow
                 if (event.keyCode == "83") {
                     snowing = !snowing;
+                    if (snowing) raining = false;
                 }
                 return false;
             });
@@ -768,7 +770,13 @@
             var snowing = false;
 
             function drawCube(transmat, dropmat, compressmat) {
-                gl.clearColor(1.0, 1.0, 1.0, 1.0);
+                if (snowing) {
+                    gl.clearColor(0.1, 0.1, 0.1, 0.0);
+
+                } else {
+                    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+
+                }
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
@@ -914,8 +922,30 @@
             }
 
             function createSnowflake(x, y, z) {
-                var r = Math.floor((Math.random() * 3) + 1) / 90;
-                return createSphere(x, y, z, r);
+                var shapeData = createShapeData();
+                var v = shapeData.positions.length / 3;
+                shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+
+                var i;
+                for (i = 0; i < 4; i++) {
+                    shapeData.normals.push(0.0, -1.0, 0.0);
+                }
+
+                var xDelta = Math.floor((Math.random() * 3) + 1) / 30;
+
+                shapeData.positions.push(x, y + xDelta, z);
+                shapeData.texCoords.push(1.0, 0.0);
+
+                shapeData.positions.push(x + xDelta, y + xDelta, z);
+                shapeData.texCoords.push(0.0, 0.0);
+
+                shapeData.positions.push(x + xDelta, y + xDelta, z + xDelta);
+                shapeData.texCoords.push(0.0, 1.0);
+
+                shapeData.positions.push(x, y + xDelta, z + xDelta);
+                shapeData.texCoords.push(1.0, 1.0);
+
+                return shapeData;
             }
 
 
@@ -959,8 +989,8 @@
                 maxSnowHeight = 20;
                 transform_snow_2 = mat4.create();
                 snowDropSpeed = 0.008;
-                for (var x = Math.max(lastX - 3, 0); x < lastX + 6; x += Math.floor((Math.random() * 4) + 1)) {
-                    for (var y = Math.max(lastY - 3, 0); y < lastY + 6; y += Math.floor((Math.random() * 4) + 1)) {
+                for (var x = Math.max(lastX - 2, 0); x < lastX + 6; x += Math.floor((Math.random() * 4) + 1)) {
+                    for (var y = Math.max(lastY - 2, 0); y < lastY + 6; y += Math.floor((Math.random() * 4) + 1)) {
                         new_snowflake = createSnowflakes(gl, x, y, 7, textureSnow);
                         snow.push(new_snowflake);
                     }
@@ -987,7 +1017,7 @@
             }
 
             setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
-            setInterval(function () { if (snowing) resetSnowflakeMatrices(); }, 2000);
+            setInterval(function () { if (snowing) resetSnowflakeMatrices(); }, 1000);
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
