@@ -442,6 +442,16 @@
             program1.draw = function (gl, shape, initialize) {
                 gl.useProgram(program1);
                 initialize();
+                // Draw to our off screen drawing buffer
+                gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer)
+
+                // Set the viewport to our shadow texture's size
+                gl.viewport(0, 0, shadowDepthTextureSize, shadowDepthTextureSize)
+                gl.clearColor(0, 0, 0, 1)
+                gl.clearDepth(1.0)
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
                 gl.enableVertexAttribArray(program1.vert_position);
                 gl.vertexAttribPointer(program1.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
