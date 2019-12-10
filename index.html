@@ -28,10 +28,21 @@
         <center>
             <h1>ジャンプ<span class="subtitle"></span></h1>
         </center>
-
+        <!-- 
         <div align="center">
             <canvas tabindex="1" id="webglCanvas" style="border: none; background-color: black;" width="800"
                 height="600"></canvas>
+        </div> -->
+
+        <div align="center">
+            <canvas id="webglCanvas" style="border: none; z-index: 1;position: absolute;margin-left: auto;
+                margin-right: auto;
+                left: 0;
+                right: 0;background-color: black;" width="800" height="600"></canvas>
+            <canvas id="webglCanvas2" tabindex='1' style="border: none; z-index: 2;position:absolute; margin-left: auto;
+                margin-right: auto;
+                left: 0;
+                right: 0;" width="800" height="600"></canvas>
         </div>
 
     </div>
@@ -303,6 +314,7 @@
                 0.0);
 
             var webglCanvas = $("#webglCanvas");
+            var webglCanvas2 = $("#webglCanvas2");
             var clientRect = webglCanvas[0].getBoundingClientRect();
 
             function decelerateStep(decelTheta, decelPhi) {
@@ -457,13 +469,13 @@
                 trackingPoints.push({ theta, phi, time });
             }
 
-            webglCanvas.bind('mousewheel', function (e) {
+            webglCanvas2.bind('mousewheel', function (e) {
                 isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
                 return false;
             });
 
-            webglCanvas.bind('mousemove', function (e) {
+            webglCanvas2.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
                     mouse.mouseDragged = true;
                     var x = 2.0 * ((event.clientX - clientRect.left) * 1.0 / clientRect.width) - 1.0;
@@ -493,7 +505,7 @@
                 }
             });
 
-            webglCanvas.mousedown(function (event) {
+            webglCanvas2.mousedown(function (event) {
                 if (event.button == 0) {
                     mouse.mouseDown = true;
                     mouse.mouseDragged = false;
@@ -673,9 +685,9 @@
                     0.0
                 )
             }
+            console.log("webglcanvs is : ", webglCanvas2);
 
-            webglCanvas.keydown(function (event) {
-
+            webglCanvas2.keydown(function (event) {
                 if (event.key == "Shift") {
                     //console.log("nocompress : " + control.state  != FAILING  && control.state  != DEAD);
                     if (!prevShiftDown && control.state != FAILING && control.state != DEAD) {
@@ -703,7 +715,7 @@
                 return false;
             });
 
-            webglCanvas.keyup(function (event) {
+            webglCanvas2.keyup(function (event) {
 
                 if (event.key == "Shift") {
                     if (control.state == COMPRESSING) {
