@@ -165,8 +165,6 @@
               }
               amountInLight /= 9.0;
 
-
-
             float shininess = 300.0;
 
             vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
@@ -241,6 +239,8 @@
 
 
     <script>
+        var shadowDepthTextureSize = 1024;
+
 
         var transform_rain_2 = mat4.create();
         var transform_rain_3 = mat4.create();
@@ -409,6 +409,10 @@
             program0.vert_texCoord = gl.getAttribLocation(program0, "vert_texCoord");
             program0.vert_normal = gl.getAttribLocation(program0, "vert_normal");
             program0.isCharacter = gl.getUniformLocation(program0, "isCharacter");
+            program0.uLightMatrix = gl.getUniformLocation(program0, 'lightMViewMatrix');
+            program0.uLightProjection = gl.getUniformLocation(program0, 'lightProjectionMatrix');
+            program0.depthColorTexture = gl.getUniformLocation(program0, 'depthColorTexture');
+
             var lastTime = performance.now();
 
             program0.draw = function (gl, shape, initialize) {
@@ -652,6 +656,24 @@
                         } else {
                             gl.uniform1f(program0.isCharacter, 0.0);
                         }
+                    }
+                    if (program0.uLightMatrix != null) {
+                        var lightViewMatrix = mat4.lookAt([], [0, 2, -3], [0, 0, 0], [0, 1, 0]);
+                        gl.uniformMatrix4fv(program0.uLightMatrix, false, lightViewMatrix);
+                    }
+                    if (program0.uLightProjection != null) {
+                        var lightProjectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40.0, 80);
+                        gl.uniformMatrix4fv(program0.uLightProjection, false, lightProjectionMatrix);
+                    }
+                    if (program0.depthColorTexture != null) {
+                        var shadowDepthTexture = gl.createTexture();
+                        gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowDepthTextureSize, shadowDepthTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+                        gl.uniform1i(program0.depthColorTexture, 0);
                     }
                 });
 
