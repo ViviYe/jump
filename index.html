@@ -46,42 +46,7 @@
     <script src="defs.js"></script>
     <script src="view.js"></script>
 
-
     <script id="vertexShader0" type="x-shader/x-vertex">
-        attribute vec3 vert_position;
-        attribute vec2 vert_texCoord;
-        attribute vec3 vert_normal;
-
-        varying vec2 vUv;
-        varying vec3 vNormal; // normal at the vertex in eye space
-        varying vec4 vPosition; // vertex position in eye space
-        varying vec3 vertPos;
-
-        uniform mat4 xform_projMat;
-        uniform mat4 xform_viewMat;
-        uniform mat4 xform_modelMat;
-        uniform mat4 transform_Mat;
-        uniform mat4 xform_normalMat;
-        uniform mat4 xform_rotMat;
-        uniform mat4 xform_scaleMat;
-        uniform float isCharacter;
-
-        void main() {
-            // Calculate point in eye space
-            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-    
-            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-            vertPos = vec3(vertPos4) / vertPos4.w;
-
-            // Calculate projected point 
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
-
-            vNormal = normalize(vert_normal);
-            vUv = vert_texCoord;
-        }
-    </script>
-
-    <script id="vertexShader1" type="x-shader/x-vertex">
         attribute vec3 vert_position;
         attribute vec2 vert_texCoord;
         attribute vec3 vert_normal;
@@ -153,6 +118,48 @@
                 float ambient = 0.8;
                 gl_FragColor = vec4(color * (0.2 * diffuseLambertian + 0.2 * diffuseLambertian2 + 0.2 * specularHighlight + 0.2 * specularHighlight2 + ambient), 1.0);
             }
+        }
+    </script>
+
+    <script id="vertexShader1" type="x-shader/x-vertex">
+        attribute vec3 vert_position;
+        attribute vec2 vert_texCoord;
+        attribute vec3 vert_normal;
+
+        varying vec2 vUv;
+        varying vec3 vNormal; // normal at the vertex in eye space
+        varying vec4 vPosition; // vertex position in eye space
+        varying vec3 vertPos;
+        varying vec4 shadowPos;
+
+        uniform mat4 xform_projMat;
+        uniform mat4 xform_viewMat;
+        uniform mat4 xform_modelMat;
+        uniform mat4 transform_Mat;
+        uniform mat4 xform_normalMat;
+        uniform mat4 xform_rotMat;
+        uniform mat4 xform_scaleMat;
+        uniform float isCharacter;
+
+        uniform mat4 lightMViewMatrix;
+        uniform mat4 lightProjectionMatrix;
+
+        const mat4 texUnitConverter = mat4(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0);
+
+        void main() {
+            // Calculate point in eye space
+            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position + 1.0, 1.0))));
+    
+            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
+            vertPos = vec3(vertPos4) / vertPos4.w;
+
+            // Calculate projected point 
+            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
+
+            vNormal = normalize(vert_normal);
+            vUv = vert_texCoord;
+
+            shadowPos = texUnitConverter * lightProjectionMatrix * lightMViewMatrix * vec4(vert_position, 1.0);
         }
     </script>
 
