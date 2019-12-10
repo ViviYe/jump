@@ -217,6 +217,24 @@
             return character;
         }
 
+
+        function createCube(gl, x, y, z, tex) {
+            var cube = {
+                shapes: [],
+                texture: tex,
+                shadow: [],
+                pos: [x + 0.5, y + 0.5]
+            }
+            cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
+            cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
+            cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
+            cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
+            cube.shapes.push(createShape(gl, createFloor(x, y, z)));
+            cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+            cube.shadow.push(createShape(gl, createShadow(x, y, z)));
+            return cube;
+        }
+
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
 
@@ -250,7 +268,8 @@
             var NO_ACTION = 0;
             var COMPRESSING = 1;
             var JUMPING = 2;
-            var COMING_BACK = 3;
+            var FAILING = 4;
+            var DEAD = 5;
 
 
 
@@ -646,9 +665,8 @@
             webglCanvas.keydown(function (event) {
 
                 if (event.key == "Shift") {
-                    control.state = COMPRESSING;
-                    control.time = Date.now();
-                    if (!prevShiftDown) {
+                    //console.log("nocompress : " + control.state  != FAILING  && control.state  != DEAD);
+                    if (!prevShiftDown && control.state  != FAILING  && control.state  != DEAD) {
                         curdir = dir;
                         control.state = COMPRESSING;
                         control.time = Date.now();
@@ -670,13 +688,16 @@
             webglCanvas.keyup(function (event) {
 
                 if (event.key == "Shift") {
-                    control.state = COMING_BACK;
-                    control.time = Date.now();
+                    if (control.state == COMPRESSING){
+                        control.state = JUMPING;
+                        control.time = Date.now();
+                    
                     dropNewBox();
                     release_time = Date.now();
                     cubeHeight = 1;
 
                     prevShiftDown = false;
+                    }
 
                 }
                 return false;
@@ -944,13 +965,13 @@
             }
 
             var h;
-            var lasth;
             var r;
             var l;
+            var currentposx = 0.5;
+            var currentposy = 0.5;
 
             function jump(t, dir, compressedtime) {
                 console.log(compressedtime);
-                lasth = h;
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
                 console.log("height" + h);
                 if (h <= 0) {
@@ -962,11 +983,18 @@
                         mat4.fromTranslation(errormat, error);
                         transform_character = errormat;
                         updateDropMatrix();
+                        currentposx += r;
                     } else {
                         vec3.set(error, 0, l, 0);
                         mat4.fromTranslation(errormat, error);
                         transform_character = errormat;
                         updateDropMatrix();
+                        currentposy+=l;
+                    }
+                    console.log(check_not_fall());
+                    if (! check_not_fall() ){
+                        control.state = FAILING;
+                        control.time = Date.now();
                     }
 
                 } else {
@@ -1006,24 +1034,20 @@
                 }
             }
 
+            function check_not_fall(){
+                var xlower = current_cube.pos[0] -0.5;
+                var xhigher = current_cube.pos[0] +0.5;
+                var ylower = current_cube.pos[1] -0.5;
+                var yhigher = current_cube.pos[1] +0.5;
+                return currentposx > xlower && currentposx < xhigher &&  currentposy > ylower && currentposy < yhigher;
+
+            }
             function compress(t) {
                 var transMat = mat4.create();
                 var shift = vec3.create();
                 vec3.set(shift, 0, 0, -t / 10);
                 mat4.fromTranslation(transMat, shift);
                 transform_character = transMat;
-            }
-
-
-            function comeback(t) {
-                console.log(t);
-                var transMat = mat4.create();
-                var shift = vec3.create();
-                vec3.set(shift, 0, 0, t / 10);
-                mat4.fromTranslation(transMat, shift);
-                transform_character = transMat;
-                control.state = JUMPING;
-                control.time = Date.now();
             }
 
 
@@ -1114,8 +1138,8 @@
                     jump((Date.now() - control.time) / 150, dir, (release_time - compress_time) / 300);
                 } else if (control.state == COMPRESSING) {
                     compress((Date.now() - control.time) / 300);
-                } else if (control.state == COMING_BACK) {
-                    comeback((release_time - compress_time) / 300);
+                } else if (control.state == FAILING) {
+                 //   comeback((release_time - compress_time) / 300);
                 } else {
 
                 }

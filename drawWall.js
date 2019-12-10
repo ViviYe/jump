@@ -286,21 +286,22 @@ function createShadow(x, y, z) {
 
 }
 
-function createCube(gl, x, y, z, tex) {
-    var cube = {
-        shapes: [],
-        texture: tex,
-        shadow: []
-    }
-    cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
-    cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
-    cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
-    cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
-    cube.shapes.push(createShape(gl, createFloor(x, y, z)));
-    cube.shapes.push(createShape(gl, createRoof(x, y, z)));
-    cube.shadow.push(createShape(gl, createShadow(x, y, z)));
-    return cube;
-}
+// function createCube(gl, x, y, z, tex) {
+//     var cube = {
+//         shapes: [],
+//         texture: tex,
+//         shadow: [],
+//         pos:[x+0.5, y+0.5]
+//     }
+//     cube.shapes.push(createShape(gl, createNorthWall(x, y, z)));
+//     cube.shapes.push(createShape(gl, createSouthWall(x, y, z)));
+//     cube.shapes.push(createShape(gl, createEastWall(x, y, z)));
+//     cube.shapes.push(createShape(gl, createWestWall(x, y, z)));
+//     cube.shapes.push(createShape(gl, createFloor(x, y, z)));
+//     cube.shapes.push(createShape(gl, createRoof(x, y, z)));
+//     cube.shadow.push(createShape(gl, createShadow(x, y, z)));
+//     return cube;
+// }
 
 
 // function createCharacter(gl, tex) {
