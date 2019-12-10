@@ -178,12 +178,17 @@
         var transform_rain_2 = mat4.create();
         var transform_rain_3 = mat4.create();
 
+        var transform_snow_2 = mat4.create();
+        var transform_snow_3 = mat4.create();
+
         var lastX = 0;
         var lastY = 0;
 
         var rain = [];
+        var snow = [];
         var curdir;
         var rainHeight = 0;
+        var snowHeight = 0;
         var maze = null;
         var shouldUpdate = false;
         function updateMaze() {
@@ -211,7 +216,7 @@
                 shapes: [],
                 texture: tex
             }
-            console.log("updated");
+            // console.log("updated");
             character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
             character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
             return character;
@@ -254,6 +259,10 @@
 
             // rain texture
             queue.loadManifest(["data/rain.png", { id: "rain", src: "data/rain.png" }]);
+
+            // snow texture
+            queue.loadManifest(["data/white.png", { id: "snow", src: "data/white.png" }]);
+
 
             queue.on("complete", function (event) {
                 runWebGL(queue);
@@ -351,6 +360,7 @@
             cubetextures = [textureBlueGrey, textureSkin, textureAqua, texturePeach];
 
             var textureRain = createTexture(gl, queue.getResult("rain"));
+            var textureSnow = createTexture(gl, queue.getResult("snow"));
 
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
@@ -594,6 +604,8 @@
 
             var dropSpeed = 0.008;
             var rainDropSpeed = 0.008;
+            var snowDropSpeed = 0.001;
+
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
@@ -666,7 +678,7 @@
 
                 if (event.key == "Shift") {
                     //console.log("nocompress : " + control.state  != FAILING  && control.state  != DEAD);
-                    if (!prevShiftDown && control.state  != FAILING  && control.state  != DEAD) {
+                    if (!prevShiftDown && control.state != FAILING && control.state != DEAD) {
                         curdir = dir;
                         control.state = COMPRESSING;
                         control.time = Date.now();
@@ -682,21 +694,25 @@
                 if (event.keyCode == "82") {
                     raining = !raining;
                 }
+                // if press S, then snow
+                if (event.keyCode == "83") {
+                    snowing = !snowing;
+                }
                 return false;
             });
 
             webglCanvas.keyup(function (event) {
 
                 if (event.key == "Shift") {
-                    if (control.state == COMPRESSING){
+                    if (control.state == COMPRESSING) {
                         control.state = JUMPING;
                         control.time = Date.now();
-                    
-                    dropNewBox();
-                    release_time = Date.now();
-                    cubeHeight = 1;
 
-                    prevShiftDown = false;
+                        dropNewBox();
+                        release_time = Date.now();
+                        cubeHeight = 1;
+
+                        prevShiftDown = false;
                     }
 
                 }
@@ -749,6 +765,7 @@
 
             var bouncing = false;
             var raining = false;
+            var snowing = false;
 
             function drawCube(transmat, dropmat, compressmat) {
                 gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -772,6 +789,10 @@
 
             function drawRainDrop(dropmat) {
                 rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
+            }
+
+            function drawSnowflake(dropmat) {
+                snow.forEach(snowflake => (snowflake.shapes).forEach(shape => drawShape(gl, shape, new_snowflake.texture, dropmat, false)))
             }
 
             function dropCube(transmat, dropmat) {
@@ -802,10 +823,24 @@
                 }
             }
 
+            function dropSnow(dropmat) {
+                drawSnowflake(dropmat);
+                if (snowHeight > -8) {
+                    snowHeight = snowHeight - snowDropSpeed;
+                    snowDropSpeed *= 0.999;
+                    var drop = vec3.create();
+                    vec3.set(drop, 0, 0, snowHeight);
+                    var droptranslation = mat4.fromTranslation(mat4.clone(dropmat), drop);
+                    transform_snow_2 = droptranslation;
+                    window.requestAnimationFrame(() => dropSnow(droptranslation));
+                }
+            }
+
             var decelRate = 0.99;
             var decelRate2 = 0.0015;
             var maxHeight = 0.7;
             var maxRainHeight = 1.0;
+            var maxSnowHeight = 1.0;
             var dropping = false;
             var eps = 0.1;
 
@@ -878,6 +913,12 @@
                 return shapeData;
             }
 
+            function createSnowflake(x, y, z) {
+                var r = Math.floor((Math.random() * 3) + 1) / 90;
+                return createSphere(x, y, z, r);
+            }
+
+
             function createRainDrops(gl, x, y, z, tex) {
                 var rainDrop = {
                     shapes: [],
@@ -886,6 +927,16 @@
                 }
                 rainDrop.shapes.push(createShape(gl, createRainDrop(x, y, z)));
                 return rainDrop;
+            }
+
+            function createSnowflakes(gl, x, y, z, tex) {
+                var snowflake = {
+                    shapes: [],
+                    texture: tex,
+                    shadow: []
+                }
+                snowflake.shapes.push(createShape(gl, createSnowflake(x, y, z)));
+                return snowflake;
             }
 
             function resetRainDropMatrices() {
@@ -898,6 +949,20 @@
                     for (var y = Math.max(lastY - 5, 0); y < lastY + 8; y += Math.floor((Math.random() * 3) + 1)) {
                         new_rainDrop = createRainDrops(gl, x, y, 7, textureRain);
                         rain.push(new_rainDrop);
+                    }
+                }
+            }
+
+            function resetSnowflakeMatrices() {
+                snow = [];
+                snowHeight = 0;
+                maxSnowHeight = 20;
+                transform_snow_2 = mat4.create();
+                snowDropSpeed = 0.008;
+                for (var x = Math.max(lastX - 3, 0); x < lastX + 6; x += Math.floor((Math.random() * 4) + 1)) {
+                    for (var y = Math.max(lastY - 3, 0); y < lastY + 6; y += Math.floor((Math.random() * 4) + 1)) {
+                        new_snowflake = createSnowflakes(gl, x, y, 7, textureSnow);
+                        snow.push(new_snowflake);
                     }
                 }
             }
@@ -922,6 +987,7 @@
             }
 
             setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
+            setInterval(function () { if (snowing) resetSnowflakeMatrices(); }, 2000);
 
             $("#webglCanvas").dblclick(function (event) {
                 resetCubeMatrices();
@@ -971,9 +1037,9 @@
             var currentposy = 0.5;
 
             function jump(t, dir, compressedtime) {
-                console.log(compressedtime);
+                // console.log(compressedtime);
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
-                console.log("height" + h);
+                // console.log("height" + h);
                 if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
@@ -989,10 +1055,10 @@
                         mat4.fromTranslation(errormat, error);
                         transform_character = errormat;
                         updateDropMatrix();
-                        currentposy+=l;
+                        currentposy += l;
                     }
-                    console.log(check_not_fall());
-                    if (! check_not_fall() ){
+                    // console.log(check_not_fall());
+                    if (!check_not_fall()) {
                         control.state = FAILING;
                         control.time = Date.now();
                     }
@@ -1034,12 +1100,12 @@
                 }
             }
 
-            function check_not_fall(){
-                var xlower = current_cube.pos[0] -0.5;
-                var xhigher = current_cube.pos[0] +0.5;
-                var ylower = current_cube.pos[1] -0.5;
-                var yhigher = current_cube.pos[1] +0.5;
-                return currentposx > xlower && currentposx < xhigher &&  currentposy > ylower && currentposy < yhigher;
+            function check_not_fall() {
+                var xlower = current_cube.pos[0] - 0.5;
+                var xhigher = current_cube.pos[0] + 0.5;
+                var ylower = current_cube.pos[1] - 0.5;
+                var yhigher = current_cube.pos[1] + 0.5;
+                return currentposx > xlower && currentposx < xhigher && currentposy > ylower && currentposy < yhigher;
 
             }
             function compress(t) {
@@ -1133,13 +1199,16 @@
                     // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
 
                 }
-                console.log(control.state);
+                if (snowing) {
+                    dropSnow(mat4.clone(transform_snow_2));
+                }
+                // console.log(control.state);
                 if (control.state == JUMPING) {
                     jump((Date.now() - control.time) / 150, dir, (release_time - compress_time) / 300);
                 } else if (control.state == COMPRESSING) {
                     compress((Date.now() - control.time) / 300);
                 } else if (control.state == FAILING) {
-                 //   comeback((release_time - compress_time) / 300);
+                    //   comeback((release_time - compress_time) / 300);
                 } else {
 
                 }
