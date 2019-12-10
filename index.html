@@ -109,6 +109,9 @@
         uniform mat4 xform_scaleMat;
         uniform float isCharacter;
 
+        uniform mat4 uPMatrix;
+        uniform mat4 uMVMatrix;
+
         void main() {
             // Calculate point in eye space
             vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
@@ -117,7 +120,7 @@
             vertPos = vec3(vertPos4) / vertPos4.w;
 
             // Calculate projected point 
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
+            gl_Position = uPMatrix * uMVMatrix * (((xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
 
             vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
@@ -205,42 +208,37 @@
         uniform sampler2D texture;
         uniform float isCharacter;
 
+        vec4 encodeFloat (float depth) {
+            const vec4 bitShift = vec4(
+              256 * 256 * 256,
+              256 * 256,
+              256,
+              1.0
+            );
+            const vec4 bitMask = vec4(
+              0,
+              1.0 / 256.0,
+              1.0 / 256.0,
+              1.0 / 256.0
+            );
+            vec4 comp = fract(depth * bitShift);
+            comp -= comp.xxyz * bitMask;
+            return comp;
+          }
+
         void main() {
-            float shininess = 300.0;
-
-            vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
-            vec3 lightColor = vec3(1.0, 1.0, 1.0);
-
-            vec3 lightPos2 = vec3(100000.0, 1000.0, 100.0);
-
-            vec3 N = normalize(vNormal);
-            vec3 L = normalize(lightPos - vertPos);
-            vec3 V = normalize(-vertPos);
-            vec3 H = normalize(L + V);
-
-            vec3 L2 = normalize(lightPos2 - vertPos);
-            vec3 H2 = normalize(L2 + V);
-
-            vec3 color = texture2D(texture, vUv).rgb;
-            float diffuseLambertian = max(dot(N, L), 0.0);
-            float diffuseLambertian2 = max(dot(N, L2), 0.0);
-            float specularHighlight = pow(max(dot(V, reflect(-L, N)), 0.0), shininess);
-            float specularHighlight2 =  pow(max(dot(V, reflect(-L2, N)), 0.0), shininess);
-
-            if (isCharacter == 1.0) {
-                gl_FragColor = 2.0 * vec4(color * (diffuseLambertian + specularHighlight + diffuseLambertian2 + specularHighlight2), 1.0); 
-            } else {
-                float ambient = 0.8;
-                gl_FragColor = vec4(color * (0.2 * diffuseLambertian + 0.2 * diffuseLambertian2 + 0.2 * specularHighlight + 0.2 * specularHighlight2 + ambient), 1.0);
-            }
-            gl_FragColor = vec4(color, 1.0);
+            gl_FragColor = encodeFloat(gl_FragCoord.z);
         }
+
+        
     </script>
 
 
     <script>
         var shadowDepthTextureSize = 1024;
 
+        var lightViewMatrix = mat4.lookAt([], [0, 2, -3], [0, 0, 0], [0, 1, 0]);
+        var lightProjectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40.0, 80);
 
         var transform_rain_2 = mat4.create();
         var transform_rain_3 = mat4.create();
@@ -397,6 +395,68 @@
 
             var textureRain = createTexture(gl, queue.getResult("rain"));
 
+            program1 = createGlslProgram(gl, "vertexShader1", "fragmentShader1");
+            program1.texture = gl.getUniformLocation(program1, "texture");
+            program1.xform_projMat = gl.getUniformLocation(program1, "xform_projMat");
+            program1.xform_viewMat = gl.getUniformLocation(program1, "xform_viewMat");
+            program1.xform_modelMat = gl.getUniformLocation(program1, "xform_modelMat");
+            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
+            program1.xform_normalMat = gl.getUniformLocation(program1, "xform_normalMat");
+            program1.xform_scaleMat = gl.getUniformLocation(program1, "xform_scaleMat");
+            program1.vert_position = gl.getAttribLocation(program1, "vert_position");
+            program1.vert_texCoord = gl.getAttribLocation(program1, "vert_texCoord");
+            program1.vert_normal = gl.getAttribLocation(program1, "vert_normal");
+            program1.isCharacter = gl.getUniformLocation(program1, "isCharacter");
+            program1.shadowPMatrix = gl.getUniformLocation(program1, 'uPMatrix');
+            program1.shadowMVMatrix = gl.getUniformLocation(program1, 'uMVMatrix');
+
+            gl.useProgram(program1);
+            var shadowFramebuffer = gl.createFramebuffer()
+            gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer)
+
+            var shadowDepthTexture = gl.createTexture()
+            gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture)
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowDepthTextureSize, shadowDepthTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+
+            var renderBuffer = gl.createRenderbuffer()
+            gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer)
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowDepthTextureSize, shadowDepthTextureSize)
+
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowDepthTexture, 0)
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer)
+
+            gl.bindTexture(gl.TEXTURE_2D, null)
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null)
+
+            // We create an orthographic projection and view matrix from which our light
+            // will vie the scene
+            var lightProjectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40.0, 80)
+            var lightViewMatrix = mat4.lookAt([], [0, 2, -3], [0, 0, 0], [0, 1, 0])
+
+            gl.uniformMatrix4fv(program1.shadowPMatrix, false, lightProjectionMatrix)
+            gl.uniformMatrix4fv(program1.shadowMVMatrix, false, lightViewMatrix)
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
+            program1.draw = function (gl, shape, initialize) {
+                gl.useProgram(program1);
+                initialize();
+                gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
+                gl.enableVertexAttribArray(program1.vert_position);
+                gl.vertexAttribPointer(program1.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
+                gl.enableVertexAttribArray(program1.vert_texCoord);
+                gl.vertexAttribPointer(program1.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
+                gl.enableVertexAttribArray(program1.vert_normal);
+                gl.vertexAttribPointer(program1.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
+                gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                gl.useProgram(null);
+            };
+
+
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -412,8 +472,15 @@
             program0.uLightMatrix = gl.getUniformLocation(program0, 'lightMViewMatrix');
             program0.uLightProjection = gl.getUniformLocation(program0, 'lightProjectionMatrix');
             program0.depthColorTexture = gl.getUniformLocation(program0, 'depthColorTexture');
+            gl.useProgram(program0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+            gl.uniform1i(program0.depthColorTexture, 0);
+            gl.uniformMatrix4fv(program0.uLightMatrix, false, lightViewMatrix)
+            gl.uniformMatrix4fv(program0.uLightProjection, false, lightProjectionMatrix)
 
             var lastTime = performance.now();
+
 
             program0.draw = function (gl, shape, initialize) {
                 gl.useProgram(program0);
@@ -432,35 +499,7 @@
                 gl.useProgram(null);
             };
 
-            program1 = createGlslProgram(gl, "vertexShader1", "fragmentShader1");
-            program1.texture = gl.getUniformLocation(program1, "texture");
-            program1.xform_projMat = gl.getUniformLocation(program1, "xform_projMat");
-            program1.xform_viewMat = gl.getUniformLocation(program1, "xform_viewMat");
-            program1.xform_modelMat = gl.getUniformLocation(program1, "xform_modelMat");
-            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
-            program1.xform_normalMat = gl.getUniformLocation(program1, "xform_normalMat");
-            program1.xform_scaleMat = gl.getUniformLocation(program1, "xform_scaleMat");
-            program1.vert_position = gl.getAttribLocation(program1, "vert_position");
-            program1.vert_texCoord = gl.getAttribLocation(program1, "vert_texCoord");
-            program1.vert_normal = gl.getAttribLocation(program1, "vert_normal");
-            program1.isCharacter = gl.getUniformLocation(program1, "isCharacter");
 
-            program1.draw = function (gl, shape, initialize) {
-                gl.useProgram(program1);
-                initialize();
-                gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
-                gl.enableVertexAttribArray(program1.vert_position);
-                gl.vertexAttribPointer(program1.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
-                gl.enableVertexAttribArray(program1.vert_texCoord);
-                gl.vertexAttribPointer(program1.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
-                gl.enableVertexAttribArray(program1.vert_normal);
-                gl.vertexAttribPointer(program1.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
-                gl.bindBuffer(gl.ARRAY_BUFFER, null);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
-                gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-                gl.useProgram(null);
-            };
 
             function getNormalMatrix() {
                 var normalMat = mat4.create();
@@ -612,6 +651,12 @@
                             gl.uniform1f(program1.isCharacter, 0.0);
                         }
                     }
+                    if (program1.shadowPMatrix != null) {
+                        gl.uniformMatrix4fv(program1.shadowPMatrix, false, lightProjectionMatrix);
+                    }
+                    if (program1.shadowMVMatrix != null) {
+                        gl.uniformMatrix4fv(program1.shadowMVMatrix, false, lightViewMatrix);
+                    }
                 });
 
             }
@@ -658,19 +703,12 @@
                         }
                     }
                     if (program0.uLightMatrix != null) {
-                        var lightViewMatrix = mat4.lookAt([], [0, 2, -3], [0, 0, 0], [0, 1, 0]);
                         gl.uniformMatrix4fv(program0.uLightMatrix, false, lightViewMatrix);
                     }
                     if (program0.uLightProjection != null) {
-                        var lightProjectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40.0, 80);
                         gl.uniformMatrix4fv(program0.uLightProjection, false, lightProjectionMatrix);
                     }
                     if (program0.depthColorTexture != null) {
-                        var shadowDepthTexture = gl.createTexture();
-                        gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowDepthTextureSize, shadowDepthTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
                         gl.uniform1i(program0.depthColorTexture, 0);
