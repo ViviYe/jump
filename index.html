@@ -221,11 +221,11 @@
         var skyIdx = 0;
         function prevSkybox() {
             if (spaceMode)
-                skyIdx = skyIdx + 1 > 2 ? 0 : skyIdx + 1;
+                skyIdx = skyIdx + 1 > 3 ? 0 : skyIdx + 1;
         }
         function nextSkybox() {
             if (spaceMode)
-                skyIdx = skyIdx - 1 < 0 ? 2 : skyIdx - 1;
+                skyIdx = skyIdx - 1 < 0 ? 3 : skyIdx - 1;
         }
         function createShapeData() {
             return {
@@ -524,6 +524,13 @@
             queue.loadManifest(["data/skybox/blue/ft.png", { id: "zpos0", src: "data/skybox/blue/ft.png" }]);
             queue.loadManifest(["data/skybox/blue/bk.png", { id: "zneg0", src: "data/skybox/blue/bk.png" }]);
 
+            queue.loadManifest(["data/skybox/corona/rt.png", { id: "xpos3", src: "data/skybox/corona/rt.png" }]);
+            queue.loadManifest(["data/skybox/corona/lf.png", { id: "xneg3", src: "data/skybox/corona/lf.png" }]);
+            queue.loadManifest(["data/skybox/corona/dn.png", { id: "ypos3", src: "data/skybox/corona/dn.png" }]);
+            queue.loadManifest(["data/skybox/corona/up.png", { id: "yneg3", src: "data/skybox/corona/up.png" }]);
+            queue.loadManifest(["data/skybox/corona/ft.png", { id: "zpos3", src: "data/skybox/corona/ft.png" }]);
+            queue.loadManifest(["data/skybox/corona/bk.png", { id: "zneg3", src: "data/skybox/corona/bk.png" }]);
+
             queue.loadManifest(["data/skybox/light-blue/rt.png", { id: "xpos1", src: "data/skybox/light-blue/rt.png" }]);
             queue.loadManifest(["data/skybox/light-blue/lf.png", { id: "xneg1", src: "data/skybox/light-blue/lf.png" }]);
             queue.loadManifest(["data/skybox/light-blue/dn.png", { id: "ypos1", src: "data/skybox/light-blue/dn.png" }]);
@@ -624,7 +631,9 @@
                 queue.getResult("ypos1"), queue.getResult("yneg1"), queue.getResult("zpos1"), queue.getResult("zneg1"));
             var textureSkybox2 = createSkyboxTexture(gl, queue.getResult("xpos2"), queue.getResult("xneg2"),
                 queue.getResult("ypos2"), queue.getResult("yneg2"), queue.getResult("zpos2"), queue.getResult("zneg2"));
-            var skyboxes = [textureSkybox0, textureSkybox1, textureSkybox2];
+            var textureSkybox3 = createSkyboxTexture(gl, queue.getResult("xpos3"), queue.getResult("xneg3"),
+                queue.getResult("ypos3"), queue.getResult("yneg3"), queue.getResult("zpos3"), queue.getResult("zneg3"));
+            var skyboxes = [textureSkybox0, textureSkybox3, textureSkybox1, textureSkybox2];
 
 
             var textureRain = createTexture(gl, queue.getResult("rain"));
