@@ -225,7 +225,7 @@
             raining = !raining;
             if (raining) snowing = false;
         }
-        function reset(){
+        function reset() {
             shouldUpdate = true;
         }
 
@@ -1553,7 +1553,6 @@
                         mat4.multiply(transMat, move, transMat);
                         mat4.multiply(transMat, transMat, rotateMat);
                         transform_character = transMat;
-
                     }
 
                 }
@@ -1564,10 +1563,8 @@
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = "#787878";
                 ctx.font = '50px avenir';
-                var textString = "game over!",
-                    textWidth = ctx.measureText(textString).width;
-                ctx.translate(0.5, 0.5);
-
+                var textString = "game over!";
+                var textWidth = ctx.measureText(textString).width;
                 ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), (canvas.height / 2));
             }
 
@@ -1586,10 +1583,13 @@
             }
 
             function check_not_fall() {
-                var xlower = current_cube.pos[0] - 0.5;
-                var xhigher = current_cube.pos[0] + 0.5;
-                var ylower = current_cube.pos[1] - 0.5;
-                var yhigher = current_cube.pos[1] + 0.5;
+                var charRad = 0.18;
+                var cubeRad = 0.5;
+                var delta = charRad + cubeRad;
+                var xlower = current_cube.pos[0] - delta;
+                var xhigher = current_cube.pos[0] + delta;
+                var ylower = current_cube.pos[1] - delta;
+                var yhigher = current_cube.pos[1] + delta;
                 return currentposx > xlower && currentposx < xhigher && currentposy > ylower && currentposy < yhigher;
 
             }
@@ -1604,7 +1604,7 @@
 
 
 
-            function updateWebGL() {           
+            function updateWebGL() {
                 displayScore();
                 if (shouldUpdate) {
                     shouldUpdate = false;
