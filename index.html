@@ -1443,6 +1443,19 @@ function createGround(gl, x, y, z) {
                 transform_character = trans_Mat;
             }
 
+            function fail(t) {
+                if (t > 5){
+                  control.state == DEAD;
+                  updateDropMatrix();
+                }else {
+                var trans_Mat = mat4.create();
+                var shift = vec3.create();
+                vec3.set(shift, 0, 0, -t);
+                mat4.fromTranslation(trans_Mat, shift);
+                transform_character = trans_Mat;
+                }
+            }
+
 
 
             function updateWebGL() {
@@ -1527,6 +1540,7 @@ function createGround(gl, x, y, z) {
                 } else if (control.state == COMPRESSING) {
                     compress((Date.now() - control.time) / 300);
                 } else if (control.state == FAILING) {
+                    fail((Date.now() - control.time) / 300);
                 } else {
                 }
                 dropOnce(transform_character, drop_character);
