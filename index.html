@@ -26,9 +26,10 @@
                     right: 0;" width="800" height="600"></canvas>
             <div class="icons">
                 <button class="btn" type="button" onclick="enableSnow()"><i class="fa fa-snowflake-o"></i></button>
-                <button class="btn" type="button" onclick="enableSkybox()"><i class="fa fa-dropbox"></i></button>
                 <button class="btn" type="button" onclick="enableRain()"><i class="fa fa-umbrella"></i></button>
-                <button class="btn" type="button" id="reset"><i class="fa fa-close"></i></button>
+                <button class="btn" type="button" onclick="enableSkybox()"><i class="fa fa-dropbox"></i></button>
+                <button class="btn" type="button" onclick="changeSkybox()"><i class="fa fa-forward"></i></button>
+                <button class="btn" type="button" onclick="reset()"><i class="fa fa-close"></i></button>
             </div>
 
         </div>
@@ -235,6 +236,14 @@
         function enableSkybox() {
             spaceMode = !spaceMode;
             if (!spaceMode) skybox = [];
+        }
+
+        function changeSkybox() {
+
+        }
+
+        function reset() {
+
         }
 
 
@@ -983,7 +992,7 @@
             var rainDropSpeed = 0.008;
             var snowDropSpeed = 0.00008;
             var first_cube = [];
-          //  var onFirst = true;
+            //  var onFirst = true;
 
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
@@ -992,7 +1001,7 @@
                 if (current_cube.length != 0) {
                     all_cubes.push(current_cube);
                 }
-                if (new_cube.length != 0){
+                if (new_cube.length != 0) {
                     //onFirst = false;
                     current_cube = new_cube;
                 }
@@ -1022,9 +1031,9 @@
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
-            function dropNewBox() {            
+            function dropNewBox() {
                 resetCubeMatrices();
-                randDirAndDist();    
+                randDirAndDist();
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -1179,8 +1188,8 @@
                         (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, transform_matrix_3));
                     }
                     (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
-                }else{
-                    if (first_cube.length != 0){
+                } else {
+                    if (first_cube.length != 0) {
                         (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, compressmat));
                     }
                 }
