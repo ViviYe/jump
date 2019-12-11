@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" href="data/icon-pink.png">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>ジャンプ</title>
+    <title>jump</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -847,7 +848,6 @@
                     if (transmat != null) {
                         if (program0.transform_Mat != null) {
                             gl.uniformMatrix4fv(program0.transform_Mat, false, transmat);
-
                         }
                     }
                     if (scalemat != null) {
@@ -875,7 +875,6 @@
                         }
                     }
                 });
-
             }
 
             function drawSkybox(gl, shape, texture, transmat) {
@@ -922,7 +921,6 @@
                 if (all_cubes.length >= 7) {
                     all_cubes.shift();
                     ground.shift();
-
                 }
                 height = 0;
                 maxHeight = 0.3;
@@ -941,7 +939,6 @@
                     dir = 1;
                     lastY += dis;
                 } else randDirAndDist();
-
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
@@ -960,7 +957,6 @@
                     targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
                 if (dir == 3)
                     targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
-
                 control.mode = IS_MOVING;
                 control.fromPosition = vec3.fromValues(
                     currentX + 0.5,
@@ -978,7 +974,6 @@
                     0.0
                 )
             }
-            console.log("webglcanvs is : ", webglCanvas2);
 
             webglCanvas2.keydown(function (event) {
                 if (event.key == "Shift") {
@@ -1384,39 +1379,6 @@
             setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
             setInterval(function () { if (snowing) resetSnowflakeMatrices(); }, 1000);
 
-            $("#webglCanvas").dblclick(function (event) {
-                resetCubeMatrices();
-                randDirAndDist();
-                currentX = Math.round(control.currentPosition[0] - 0.5);
-                currentY = Math.round(control.currentPosition[1] - 0.5);
-                dx = Math.round(Math.cos(dir * Math.PI / 2));
-                dy = Math.round(Math.sin(dir * Math.PI / 2));
-                var targetPos;
-                if (dir == 0)
-                    targetPos = [currentX + dx + 0.5 * dis, currentY + dy];
-                if (dir == 1)
-                    targetPos = [currentX + dx, currentY + dy + 0.5 * dis];
-                if (dir == 3)
-                    targetPos = [currentX + dx, currentY + dy - 0.45 * dis];
-
-                control.mode = IS_MOVING;
-                control.fromPosition = vec3.fromValues(
-                    currentX + 0.5,
-                    currentY + 0.5,
-                    0.0
-                );
-                direction = vec3.fromValues(
-                    dx,
-                    dy,
-                    0.0
-                );
-                control.toPosition = vec3.fromValues(
-                    targetPos[0] + 0.5,
-                    targetPos[1] + 0.5,
-                    0.0
-                )
-            });
-
             function updateDropMatrix() {
                 var newdrop = mat4.create();
                 mat4.multiply(newdrop, transform_character, drop_character);
@@ -1506,6 +1468,8 @@
                 ctx.font = '50px avenir';
                 var textString = "game over!",
                     textWidth = ctx.measureText(textString).width;
+                ctx.translate(0.5, 0.5);
+
                 ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), (canvas.height / 2));
             }
 
