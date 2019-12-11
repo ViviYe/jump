@@ -225,6 +225,9 @@
             raining = !raining;
             if (raining) snowing = false;
         }
+        function reset(){
+            shouldUpdate = true;
+        }
 
         function enableSnow() {
             snowing = !snowing;
@@ -1140,6 +1143,7 @@
 
                 first_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, -15, -15, 0);
+                current_cube = [];
                 character = createCharacter(gl, textureCharacter);
                 dropNewBox();
 
@@ -1600,7 +1604,7 @@
 
 
 
-            function updateWebGL() {
+            function updateWebGL() {           
                 displayScore();
                 if (shouldUpdate) {
                     shouldUpdate = false;
@@ -1697,6 +1701,7 @@
                 }
                 dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
+
             }
             window.requestAnimationFrame(updateWebGL);
         }
