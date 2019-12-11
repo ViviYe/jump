@@ -935,6 +935,8 @@
             var dropSpeed = 0.008;
             var rainDropSpeed = 0.008;
             var snowDropSpeed = 0.00008;
+            var first_cube = [];
+          //  var onFirst = true;
 
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
@@ -943,8 +945,12 @@
                 if (current_cube.length != 0) {
                     all_cubes.push(current_cube);
                 }
-                current_cube = new_cube;
+                if (new_cube.length != 0){
+                    //onFirst = false;
+                    current_cube = new_cube;
+                }
                 if (all_cubes.length >= 7) {
+                    first_cube = [];
                     all_cubes.shift();
                     ground.shift();
                 }
@@ -969,9 +975,9 @@
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
 
-            function dropNewBox() {
+            function dropNewBox() {            
                 resetCubeMatrices();
-                randDirAndDist();
+                randDirAndDist();    
                 currentX = Math.round(control.currentPosition[0] - 0.5);
                 currentY = Math.round(control.currentPosition[1] - 0.5);
                 dx = Math.round(Math.cos(dir * Math.PI / 2));
@@ -1003,8 +1009,6 @@
 
             webglCanvas2.keydown(function (event) {
                 if (event.key == "Shift") {
-                    console.log(finishbouncing);
-                    //console.log("nocompress : " + control.state  != FAILING  && control.state  != DEAD);
                     if (control.state == NO_ACTION && finishbouncing) {
                         curdir = dir;
                         control.state = COMPRESSING;
@@ -1076,7 +1080,7 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
-                new_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
+                first_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, -15, -15, 0);
                 character = createCharacter(gl, textureCharacter);
                 dropNewBox();
@@ -1126,9 +1130,14 @@
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false, transform_matrix_3));
                 // (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
                 if (current_cube.length != 0) {
-                    //console.log(compressmat);
+                    if (first_cube.length != 0) {
+                        (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, transform_matrix_3));
+                    }
                     (current_cube.shapes).forEach(shape => drawShape(gl, shape, current_cube.texture, transmat, false, compressmat));
-                    //   (current_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, compressmat));
+                }else{
+                    if (first_cube.length != 0){
+                        (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, compressmat));
+                    }
                 }
 
             }
@@ -1219,9 +1228,7 @@
 
             var compressDecel = 0.00025;
             function compressBox(transmat, compressmat) {
-                if (all_cubes.length == 0)
-                    drawCube(mat4.create(), transmat, compressmat);
-                else if (prevShiftDown)
+                if (prevShiftDown)
                     drawCube(transmat, transmat, compressmat);
                 else drawCube(transmat, mat4.create(), compressmat);
                 if (cubeHeight > 0.5) {
