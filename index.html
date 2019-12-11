@@ -30,12 +30,6 @@
                 <font face="avenir" size='60px'>jump</font><span class="subtitle"></span>
             </h1>
         </center>
-        <!-- 
-        <div align="center">
-            <canvas tabindex="1" id="webglCanvas" style="border: none; background-color: black;" width="800"
-                height="600"></canvas>
-        </div> -->
-
         <div align="center">
             <canvas id="webglCanvas" style="border: none; z-index: 1;position: absolute;margin-left: auto;
                 margin-right: auto;
@@ -187,6 +181,7 @@
 
 
     <script>
+        var score = 0;
 
         var transform_rain_2 = mat4.create();
         var transform_rain_3 = mat4.create();
@@ -1106,6 +1101,9 @@
                         control.state = FAILING;
                         control.time = Date.now();
                         displayGameOver();
+                    } else {
+                        score++;
+                        displayScore();
                     }
 
                 } else {
@@ -1155,6 +1153,20 @@
                 ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), (canvas.height / 2));
             }
 
+            function displayScore() {
+                const canvas = document.getElementById('webglCanvas2');
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#787878";
+                ctx.font = '50px avenir';
+                var textString = "score: " + score,
+                    textWidth = ctx.measureText(textString).width;
+                var w = canvas.width * 5 / 7;
+                var h = (canvas.height / 7);
+                ctx.clearRect(w - 50, h - 50, 300, 300);
+                ctx.fillText(textString, w, h);
+
+            }
+
             function check_not_fall() {
                 var xlower = current_cube.pos[0] - 0.5;
                 var xhigher = current_cube.pos[0] + 0.5;
@@ -1174,6 +1186,7 @@
 
 
             function updateWebGL() {
+                displayScore();
                 if (shouldUpdate) {
                     shouldUpdate = false;
                     reset();
