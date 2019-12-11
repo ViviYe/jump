@@ -16,6 +16,28 @@
     <link href="css/jquery-ui.theme.min.css" rel="stylesheet">
     <link href="css/jquery-ui.structure.min.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .btn {
+            background-color: #FEB6B9;
+            margin-top: 650px;
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            font-size: 25px;
+            cursor: pointer;
+        }
+
+        /* Darker background on mouse-over */
+        .btn:hover {
+            background-color: #AFD0D7;
+        }
+
+        .icons {
+            margin-left: 450px;
+        }
+    </style>
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -40,7 +62,16 @@
                 margin-right: auto;
                 left: 0;
                 right: 0;" width="800" height="600"></canvas>
+
         </div>
+        <div class="icons">
+            <button class="btn" id="snow"><i class="fa fa-snowflake-o"></i></button>
+            <button class="btn" id="box"><i class="fa fa-dropbox"></i></button>
+            <button class="btn" id="rain"><i class="fa fa-umbrella"></i></button>
+            <button class="btn" id="end"><i class="fa fa-close"></i></button>
+        </div>
+
+
 
     </div>
 
@@ -1144,7 +1175,7 @@
 
             function dropCube(transmat, dropmat) {
                 drawCube(transmat, dropmat, transform_matrix_3);
-                if (height > -5) {                    
+                if (height > -5) {
                     finishbouncing = false;
                     height = height - dropSpeed;
                     dropSpeed *= 1.0014;
