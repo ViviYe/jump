@@ -26,7 +26,9 @@
 <body>
     <div class="container">
         <center>
-            <h1>ジャンプ<span class="subtitle"></span></h1>
+            <h1>
+                <font face="avenir" size='60px'>jump</font><span class="subtitle"></span>
+            </h1>
         </center>
         <!-- 
         <div align="center">
@@ -1103,6 +1105,7 @@
                     if (!check_not_fall()) {
                         control.state = FAILING;
                         control.time = Date.now();
+                        displayGameOver();
                     }
 
                 } else {
@@ -1140,6 +1143,16 @@
                     }
 
                 }
+            }
+
+            function displayGameOver() {
+                const canvas = document.getElementById('webglCanvas2');
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#787878";
+                ctx.font = '50px avenir';
+                var textString = "game over!",
+                    textWidth = ctx.measureText(textString).width;
+                ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), (canvas.height / 2));
             }
 
             function check_not_fall() {
@@ -1257,7 +1270,6 @@
                 dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
             }
-
             window.requestAnimationFrame(updateWebGL);
         }
         startWebGL();
