@@ -493,7 +493,6 @@
                 shapes: [],
                 texture: tex
             }
-            // console.log("updated");
             character.shapes.push(createShape(gl, createSphere(0.5, 0.5, 1, 0.15)));
             character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
             return character;
@@ -502,17 +501,21 @@
             var queue = new createjs.LoadQueue(true);
             // character texture
             queue.loadManifest(["data/dark-blue.jpeg", { id: "character", src: "data/dark-blue.jpeg" }]);
+
             // floor texture
             queue.loadManifest(["data/light-grey.jpeg", { id: "floor", src: "data/light-grey.jpeg" }]);
             queue.loadManifest(["data/black.jpg", { id: "shadow", src: "data/black.jpg" }]);
+
             // cube textures
             queue.loadManifest(["data/blue-grey.jpeg", { id: "blue-grey", src: "data/blue-grey.jpeg" }]);
             queue.loadManifest(["data/skin.jpeg", { id: "skin", src: "data/skin.jpeg" }]);
             queue.loadManifest(["data/light-salmon.jpeg", { id: "light-salmon", src: "data/light-salmon.jpeg" }]);
             queue.loadManifest(["data/aqua.jpeg", { id: "aqua", src: "data/aqua.jpeg" }]);
             queue.loadManifest(["data/peach.jpeg", { id: "peach", src: "data/peach.jpeg" }]);
+
             // rain texture
             queue.loadManifest(["data/rain.png", { id: "rain", src: "data/rain.png" }]);
+
             // snow texture
             queue.loadManifest(["data/white.png", { id: "snow", src: "data/white.png" }]);
 
@@ -870,7 +873,6 @@
             var rainDropSpeed = 0.008;
             var snowDropSpeed = 0.00008;
             var first_cube = [];
-            //  var onFirst = true;
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
@@ -879,7 +881,6 @@
                     all_cubes.push(current_cube);
                 }
                 if (new_cube.length != 0) {
-                    //onFirst = false;
                     current_cube = new_cube;
                 }
                 if (all_cubes.length >= 7) {
@@ -986,7 +987,7 @@
                     mode: NO_CONTROL,
                     state: NO_ACTION,
                     time: 0,
-                    rotateRate: 0.005, //0.004,
+                    rotateRate: 0.005,
                     moveRate: 0.005,
                     displacement: null,
                     currentHeading: maze.startHeading,
@@ -1057,13 +1058,11 @@
                     drawSky(gl, skyboxes[skyIdx]);
                 }
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
-                //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
                 if (!spaceMode) {
                     ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
                     new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
                 }
                 (new_cube.shapes).forEach(shape => drawShape(gl, shape, new_cube.texture, dropmat, false, transform_matrix_3));
-                // (new_cube.shadow).forEach(shape => drawShape(gl, shape, textureShadow, dropmat, false, transform_matrix_3));
                 if (current_cube.length != 0) {
                     if (first_cube.length != 0) {
                         (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, transform_matrix_3));
@@ -1213,14 +1212,12 @@
             }
             function createSkyCube(gl, x, y, z, length) {
                 var cube = [];
-                //var positions = 
                 cube.push(createSkyShape(gl, createNorthWall(x, y, z, length)));
                 cube.push(createSkyShape(gl, createSouthWall(x, y, z, length)));
                 cube.push(createSkyShape(gl, createEastWall(x, y, z, length)));
                 cube.push(createSkyShape(gl, createWestWall(x, y, z, length)));
                 cube.push(createSkyShape(gl, createFloor(x, y, z, length)));
                 cube.push(createSkyShape(gl, createRoof(x, y, z, length)));
-                // console.log(cube);
                 return cube;
             }
             var skybox = [];
@@ -1302,9 +1299,6 @@
                 } else if (dir == 1 && randDir == 0 || dir == 0 && randDir == 1) {
                     dir = 1;
                     lastY += dis;
-                    // } else if (dir == 3 && randDir == 0 || dir == 0 && randDir == 3) {
-                    //     dir = 3;
-                    //     lastY -= dis;
                 } else randDirAndDist();
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 if (spaceMode) {
@@ -1328,9 +1322,7 @@
             var currentposx = 0.5;
             var currentposy = 0.5;
             function jump(t, dir, compressedtime) {
-                // console.log(compressedtime);
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
-                // console.log("height" + h);
                 if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
@@ -1347,7 +1339,6 @@
                         updateDropMatrix();
                         currentposy += l;
                     }
-                    // console.log(check_not_fall());
                     if (!check_not_fall()) {
                         control.state = FAILING;
                         control.time = Date.now();
@@ -1430,7 +1421,6 @@
             function compress(t) {
                 var trans_Mat = mat4.create();
                 var shift = vec3.create();
-                //vec3.set(shift, 0, 0, -t / 20);
                 vec3.set(shift, 0, 0, 0);
                 mat4.fromTranslation(trans_Mat, shift);
                 transform_character = trans_Mat;
@@ -1444,8 +1434,6 @@
                     shouldUpdate = false;
                     reset();
                 }
-                // console.log((Date.now() - control.time)/1000);
-                // console.log( control.state);
                 var time = performance.now();
                 var elapsed = time - lastTime;
                 lastTime = time;
@@ -1511,22 +1499,17 @@
                 } else {
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
-                // window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
                 if (raining) {
-                    // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
                     dropRain(mat4.clone(transform_rain_2));
-                    // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
                 }
                 if (snowing) {
                     dropSnow(mat4.clone(transform_snow_2));
                 }
-                // console.log(control.state);
                 if (control.state == JUMPING) {
                     jump((Date.now() - control.time) / 150, dir, (release_time - compress_time) / 300);
                 } else if (control.state == COMPRESSING) {
                     compress((Date.now() - control.time) / 300);
                 } else if (control.state == FAILING) {
-                    //   comeback((release_time - compress_time) / 300);
                 } else {
                 }
                 dropOnce(transform_character, drop_character);
