@@ -27,8 +27,9 @@
             <div class="icons">
                 <button class="btn" type="button" onclick="enableSnow()"><i class="fa fa-snowflake-o"></i></button>
                 <button class="btn" type="button" onclick="enableRain()"><i class="fa fa-umbrella"></i></button>
+                <button class="btn" type="button" onclick="prevSkybox()"><i class="fa fa-backward"></i></button>
                 <button class="btn" type="button" onclick="enableSkybox()"><i class="fa fa-dropbox"></i></button>
-                <button class="btn" type="button" onclick="changeSkybox()"><i class="fa fa-forward"></i></button>
+                <button class="btn" type="button" onclick="nextSkybox()"><i class="fa fa-forward"></i></button>
                 <button class="btn" type="button" onclick="reset()"><i class="fa fa-close"></i></button>
             </div>
 
@@ -189,16 +190,13 @@
         var score = 0;
 
         var transform_rain_2 = mat4.create();
-        var transform_rain_3 = mat4.create();
 
         var transform_snow_2 = mat4.create();
-        var transform_snow_3 = mat4.create();
 
         var lastX = 0;
         var lastY = 0;
 
-        var rain = [];
-        var snow = [];
+        var rain, snow = [];
         var curdir;
         var rainHeight = 0;
         var snowHeight = 0;
@@ -238,7 +236,11 @@
             if (!spaceMode) skybox = [];
         }
 
-        function changeSkybox() {
+        function prevSkybox() {
+
+        }
+
+        function nextSkybox() {
 
         }
 
