@@ -1391,7 +1391,11 @@
             function displayGameOver() {
                 const canvas = document.getElementById('webglCanvas2');
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "#787878";
+                if (spaceMode) {
+                    ctx.fillStyle = "#ffffff";
+                } else {
+                    ctx.fillStyle = "#787878";
+                }
                 ctx.font = '50px avenir';
                 var textString = "game over!";
                 var textWidth = ctx.measureText(textString).width;
@@ -1400,7 +1404,11 @@
             function displayScore() {
                 const canvas = document.getElementById('webglCanvas2');
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "#787878";
+                if (spaceMode || snowing) {
+                    ctx.fillStyle = "#ffffff";
+                } else {
+                    ctx.fillStyle = "#787878";
+                }
                 ctx.font = '50px avenir';
                 var textString = "score: " + score,
                     textWidth = ctx.measureText(textString).width;
