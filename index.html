@@ -247,9 +247,9 @@
 
         }
 
-        function reset() {
+        // function reset() {
 
-        }
+        // }
 
 
         function createShapeData() {
@@ -1141,11 +1141,31 @@
                     startPos[1] * 1.0 + 0.5,
                     0.0);
 
+
                 first_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
+                new_cube = [];
                 new_ground = createGround(gl, -15, -15, 0);
+                lastX = 0;
+                lastY = 0;
                 current_cube = [];
                 character = createCharacter(gl, textureCharacter);
+                currentposx = 0.5;
+                currentposy = 0.5
+                characterheight = 13;
+                drop_character = mat4.create();
+                initshift = vec3.create();
+                vec3.set(initshift, 0, 0, 13);
+                drop_character = mat4.fromTranslation(drop_character, initshift);
+
+                transform_character = mat4.create();
+                rotate_character = mat4.create();
                 dropNewBox();
+
+
+                const canvas = document.getElementById('webglCanvas2');
+                const ctx = canvas.getContext('2d');           
+                ctx.clearRect(0, 0,canvas.width ,canvas.height);
+                score = 0;
 
             }
             function dropOnce(transmat, dropmat) {
