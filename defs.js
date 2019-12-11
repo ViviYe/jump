@@ -76,3 +76,4 @@ var IS_ROTATING = 1;
 var IS_MOVING = 2;
 
 var init = true;
+

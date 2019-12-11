@@ -1,0 +1,342 @@
+function createNorthWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, -1.0, 0.0);
+    }
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+    return shapeData;
+}
+function createSouthWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 1.0, 0.0);
+    }
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    return shapeData;
+}
+function createWestWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(1.0, 0.0, 0.0);
+    }
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+    return shapeData;
+}
+function createEastWall(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = 0;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(-1.0, 0.0, 0.0);
+    }
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+function createFloor(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, 1.0);
+    }
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x + length, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x, y + length, z);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+function createBigFloor(x, y, z, delta) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, 1.0);
+    }
+    shapeData.positions.push(x, y, z);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x + delta, y, z);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x + delta, y + delta, z);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x, y + delta, z);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+function createGround(gl, x, y, z) {
+    shapes = [];
+    shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
+    return shapes;
+}
+function createSphere(x, y, z, r) {
+    // x, y, z are the center
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    var SPHERE_DIV = 30;
+    var i, ai, si, ci;
+    var j, aj, sj, cj;
+    var p1, p2;
+    for (j = 0; j <= SPHERE_DIV; j++) {
+        aj = j * Math.PI / SPHERE_DIV;
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        for (i = 0; i <= SPHERE_DIV; i++) {
+            ai = i * 2 * Math.PI / SPHERE_DIV;
+            si = Math.sin(ai);
+            ci = Math.cos(ai);
+            shapeData.positions.push((si * sj) * r + x, cj * r + y, (ci * sj) * r + z);
+            shapeData.normals.push(-si * sj, -cj, -ci * sj);
+            shapeData.texCoords.push(Math.atan((cj * r) / si * sj), Math.acos(ci * sj));
+        }
+    }
+    for (j = 0; j < SPHERE_DIV; j++) {
+        for (i = 0; i < SPHERE_DIV; i++) {
+            p1 = j * (SPHERE_DIV + 1) + i;
+            p2 = p1 + (SPHERE_DIV + 1);
+            shapeData.indices.push(p1, p2, p1 + 1, p1 + 1, p2, p2 + 1);
+        }
+    }
+    return shapeData;
+}
+function createCylinder(x, y, z, h, r) {
+    var div = 0.75;
+    var shapeData = createShapeData();
+    var CYLINDER_DIV = 30;
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        shapeData.positions.push(sj * r + x, cj * r + y, z);
+        shapeData.normals.push(-sj, -cj, -0.2);
+        shapeData.texCoords.push(aj, z);
+    }
+    for (i = 0; i < CYLINDER_DIV; i++) {
+        aj = 2 * i * Math.PI / (CYLINDER_DIV - 1);
+        sj = Math.sin(aj);
+        cj = Math.cos(aj);
+        shapeData.positions.push(sj * r * div + x, cj * r * div + y, z + h);
+        shapeData.normals.push(-sj, -cj, -0.2);
+        shapeData.texCoords.push(aj, z + h);
+    }
+    for (j = 0; j < CYLINDER_DIV; j++) {
+        var cur = j;
+        var curshift = (j + 1) % CYLINDER_DIV;
+        var next = cur + CYLINDER_DIV;
+        var nextshift = curshift + CYLINDER_DIV;
+        shapeData.indices.push(cur, curshift, next, next, curshift, nextshift);
+    }
+    return shapeData;
+}
+function createRoof(x, y, z, length) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, -1.0);
+    }
+    shapeData.positions.push(x, y, z + length);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x, y + length, z + length);
+    shapeData.texCoords.push(1.0, 0.0);
+    shapeData.positions.push(x + length, y + length, z + length);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x + length, y, z + length);
+    shapeData.texCoords.push(0.0, 1.0);
+    return shapeData;
+}
+function createShadow(x, y, z) {
+    var shapeData = createShapeData();
+    var v = shapeData.positions.length / 3;
+    shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    var i;
+    for (i = 0; i < 4; i++) {
+        shapeData.normals.push(0.0, 0.0, -1.0);
+    }
+    shapeData.positions.push(x - 0.2, y - 0.2, z + 0.01);
+    shapeData.texCoords.push(0.0, 0.0);
+    shapeData.positions.push(x + 0.8, y - 0.2, z + 0.01);
+    shapeData.texCoords.push(0.0, 1.0);
+    shapeData.positions.push(x + 1, y, z + 0.01);
+    shapeData.texCoords.push(1.0, 1.0);
+    shapeData.positions.push(x, y + 1, z + 0.01);
+    shapeData.texCoords.push(1.0, 0.0);
+    return shapeData;
+}
+function createCube(gl, x, y, z, tex, length) {
+    var cube = {
+        shapes: [],
+        texture: tex,
+        shadow: [],
+        pos: [x + 0.5, y + 0.5]
+    }
+    cube.shapes.push(createShape(gl, createNorthWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createSouthWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createEastWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createWestWall(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createFloor(x, y, z, length)));
+    cube.shapes.push(createShape(gl, createRoof(x, y, z, length)));
+    cube.shadow.push(createShape(gl, createShadow(x, y, z)));
+    return cube;
+}
+function createCharacter(gl, tex) {
+    var character = {
+        shapes: [],
+        texture: tex
+    }
+    character.shapes.push(createShape(gl, createSphere(5.5, 5.5, 15, 0.15)));
+    character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
+    return character;
+}
+
+function createShapeData() {
+    return {
+        positions: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    }
+}
+function createGround(gl, x, y, z) {
+    shapes = [];
+    shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
+    return shapes;
+}
+
+            function createRainDrop(x, y, z) {
+                var shapeData = createShapeData();
+                var v = shapeData.positions.length / 3;
+                shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+                var i;
+                for (i = 0; i < 4; i++) {
+                    shapeData.normals.push(0.0, -1.0, 0.0);
+                }
+                var xDelta = Math.floor((Math.random() * 3) + 1) / 100;
+                var yDelta = Math.floor((Math.random() * 3) + 2) / 10;
+                shapeData.positions.push(x, y + yDelta, z);
+                shapeData.texCoords.push(1.0, 0.0);
+                shapeData.positions.push(x + xDelta, y + yDelta, z);
+                shapeData.texCoords.push(0.0, 0.0);
+                shapeData.positions.push(x + xDelta, y + yDelta, z + yDelta);
+                shapeData.texCoords.push(0.0, 1.0);
+                shapeData.positions.push(x, y + yDelta, z + yDelta);
+                shapeData.texCoords.push(1.0, 1.0);
+                return shapeData;
+            }
+            function createSkyShape(gl, shapeData) {
+                var shape = {};
+                var vertexData = [];
+                var vertexCount = shapeData.positions.length / 3;
+                var i;
+                for (i = 0; i < vertexCount; i++) {
+                    vertexData.push(shapeData.positions[3 * i], shapeData.positions[3 * i + 1], shapeData.positions[3 * i + 2]);
+                }
+                var vertexArray = new Float32Array(vertexData);
+                var vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                var indexArray = new Uint16Array(shapeData.indices);
+                var indexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexArray, gl.STATIC_DRAW);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                shape.vertexBuffer = vertexBuffer;
+                shape.indexBuffer = indexBuffer;
+                shape.size = shapeData.indices.length;
+                shape.stride = 4 * (3);
+                shape.positionOffset = 4 * 0;
+                return shape;
+            }
+            function createSkyCube(gl, x, y, z, length) {
+                var cube = [];
+                cube.push(createSkyShape(gl, createNorthWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createSouthWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createEastWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createWestWall(x, y, z, length)));
+                cube.push(createSkyShape(gl, createFloor(x, y, z, length)));
+                cube.push(createSkyShape(gl, createRoof(x, y, z, length)));
+                return cube;
+            }
+            var skybox = [];
+
+            function createSnowflake(x, y, z) {
+                var shapeData = createShapeData();
+                var v = shapeData.positions.length / 3;
+                shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
+                var i;
+                for (i = 0; i < 4; i++) {
+                    shapeData.normals.push(0.0, -1.0, 0.0);
+                }
+                var xDelta = Math.floor((Math.random() * 3) + 1) / 30;
+                shapeData.positions.push(x, y + xDelta, z);
+                shapeData.texCoords.push(1.0, 0.0);
+                shapeData.positions.push(x + xDelta, y + xDelta, z);
+                shapeData.texCoords.push(0.0, 0.0);
+                shapeData.positions.push(x + xDelta, y + xDelta, z + xDelta);
+                shapeData.texCoords.push(0.0, 1.0);
+                shapeData.positions.push(x, y + xDelta, z + xDelta);
+                shapeData.texCoords.push(1.0, 1.0);
+                return shapeData;
+            }
+            function createRainDrops(gl, x, y, z, tex) {
+                var rainDrop = {
+                    shapes: [],
+                    texture: tex,
+                    shadow: []
+                }
+                rainDrop.shapes.push(createShape(gl, createRainDrop(x, y, z)));
+                return rainDrop;
+            }
+            function createSnowflakes(gl, x, y, z, tex) {
+                var snowflake = {
+                    shapes: [],
+                    texture: tex,
+                    shadow: []
+                }
+                snowflake.shapes.push(createShape(gl, createSnowflake(x, y, z)));
+                return snowflake;
+            }
