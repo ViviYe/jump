@@ -915,10 +915,6 @@
             var cubeHeight = 1;
             var compressScale = 0.999;
             var scale_matrix_1 = mat4.create();
-            // var up = true;
-            // var bouncingBack = false;
-            // var bounceBackScale = 0.001;
-            // var maxCubeHeight = 1.05;
 
             function drawRain(gl, shape, dropmat, texture) {
                 program1.draw(gl, shape, function () {
@@ -1098,11 +1094,15 @@
             webglCanvas2.keydown(function (event) {
                 if (event.key == "Shift") {
                     //console.log("nocompress : " + control.state  != FAILING  && control.state  != DEAD);
-                    if (!prevShiftDown && control.state != FAILING && control.state != DEAD) {
+                    if (control.state == NO_ACTION) {
                         curdir = dir;
                         control.state = COMPRESSING;
                         control.time = Date.now();
                         compress_time = Date.now();
+                        prevShiftDown = true;
+                        
+                    } 
+                    if(finishbouncing){
                         prevShiftDown = true;
                         scale_matrix_1 = mat4.create();
                         transform_matrix_1 = mat4.clone(transform_matrix_2);
@@ -1236,6 +1236,7 @@
             }
 
             function dropCube(transmat, dropmat) {
+                finishbouncing = false;
                 drawCube(transmat, dropmat, transform_matrix_3);
                 if (height > -5) {
                     height = height - dropSpeed;
@@ -1283,11 +1284,13 @@
             var maxSnowHeight = 1.0;
             var dropping = false;
             var eps = 0.1;
+            var finishbouncing = false;
 
             function bounce(transmat, dropmat) {
                 drawCube(transmat, dropmat, transform_matrix_3);
                 if (maxHeight < eps) {
                     bouncing = false;
+                    finishbouncing = true;
                     return;
                 }
                 if (!dropping) {
@@ -1573,6 +1576,7 @@
                         control.time = Date.now();
                         displayGameOver();
                     } else {
+                        control.state = NO_ACTION;
                         score++;
                         displayScore();
                     }
@@ -1647,11 +1651,12 @@
 
             }
             function compress(t) {
-                var transMat = mat4.create();
+                var trans_Mat = mat4.create();
                 var shift = vec3.create();
-                vec3.set(shift, 0, 0, -t / 10);
-                mat4.fromTranslation(transMat, shift);
-                transform_character = transMat;
+                //vec3.set(shift, 0, 0, -t / 20);
+                vec3.set(shift, 0, 0, 0);
+                mat4.fromTranslation(trans_Mat, shift);
+                transform_character = trans_Mat;
             }
 
 
