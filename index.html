@@ -237,10 +237,13 @@
             spaceMode = !spaceMode;
             if (!spaceMode) skybox = [];
         }
-
+        var skyIdx = 0;
+        
         function changeSkybox() {
+                if (spaceMode)
+                    skyIdx = (skyIdx + 1) > 2 ? 0 : skyIdx + 1;
 
-        }
+            }
 
         function reset() {
 
@@ -621,12 +624,27 @@
             queue.loadManifest(["data/white.png", { id: "snow", src: "data/white.png" }]);
 
             // skybox texture
-            queue.loadManifest(["data/skybox/rt.png", { id: "xpos", src: "data/skybox/rt.png" }]);
-            queue.loadManifest(["data/skybox/lf.png", { id: "xneg", src: "data/skybox/lf.png" }]);
-            queue.loadManifest(["data/skybox/dn.png", { id: "ypos", src: "data/skybox/dn.png" }]);
-            queue.loadManifest(["data/skybox/up.png", { id: "yneg", src: "data/skybox/up.png" }]);
-            queue.loadManifest(["data/skybox/ft.png", { id: "zpos", src: "data/skybox/ft.png" }]);
-            queue.loadManifest(["data/skybox/bk.png", { id: "zneg", src: "data/skybox/bk.png" }]);
+            queue.loadManifest(["data/skybox/blue/rt.png", { id: "xpos0", src: "data/skybox/blue/rt.png" }]);
+            queue.loadManifest(["data/skybox/blue/lf.png", { id: "xneg0", src: "data/skybox/blue/lf.png" }]);
+            queue.loadManifest(["data/skybox/blue/dn.png", { id: "ypos0", src: "data/skybox/blue/dn.png" }]);
+            queue.loadManifest(["data/skybox/blue/up.png", { id: "yneg0", src: "data/skybox/blue/up.png" }]);
+            queue.loadManifest(["data/skybox/blue/ft.png", { id: "zpos0", src: "data/skybox/blue/ft.png" }]);
+            queue.loadManifest(["data/skybox/blue/bk.png", { id: "zneg0", src: "data/skybox/blue/bk.png" }]);
+
+            queue.loadManifest(["data/skybox/light-blue/rt.png", { id: "xpos1", src: "data/skybox/light-blue/rt.png" }]);
+            queue.loadManifest(["data/skybox/light-blue/lf.png", { id: "xneg1", src: "data/skybox/light-blue/lf.png" }]);
+            queue.loadManifest(["data/skybox/light-blue/dn.png", { id: "ypos1", src: "data/skybox/light-blue/dn.png" }]);
+            queue.loadManifest(["data/skybox/light-blue/up.png", { id: "yneg1", src: "data/skybox/light-blue/up.png" }]);
+            queue.loadManifest(["data/skybox/light-blue/ft.png", { id: "zpos1", src: "data/skybox/light-blue/ft.png" }]);
+            queue.loadManifest(["data/skybox/light-blue/bk.png", { id: "zneg1", src: "data/skybox/light-blue/bk.png" }]);
+
+            queue.loadManifest(["data/skybox/red/rt.png", { id: "xpos2", src: "data/skybox/red/rt.png" }]);
+            queue.loadManifest(["data/skybox/red/lf.png", { id: "xneg2", src: "data/skybox/red/lf.png" }]);
+            queue.loadManifest(["data/skybox/red/dn.png", { id: "ypos2", src: "data/skybox/red/dn.png" }]);
+            queue.loadManifest(["data/skybox/red/up.png", { id: "yneg2", src: "data/skybox/red/up.png" }]);
+            queue.loadManifest(["data/skybox/red/ft.png", { id: "zpos2", src: "data/skybox/red/ft.png" }]);
+            queue.loadManifest(["data/skybox/red/bk.png", { id: "zneg2", src: "data/skybox/red/bk.png" }]);
+
 
             queue.on("complete", function (event) {
                 runWebGL(queue);
@@ -725,9 +743,13 @@
             cubetextures = [textureBlueGrey, textureSkin, textureAqua, texturePeach];
 
 
-            var textureSkybox = createSkyboxTexture(gl, queue.getResult("xpos"), queue.getResult("xneg"),
-                queue.getResult("ypos"), queue.getResult("yneg"), queue.getResult("zpos"), queue.getResult("zneg"));
-
+            var textureSkybox0 = createSkyboxTexture(gl, queue.getResult("xpos0"), queue.getResult("xneg0"),
+                queue.getResult("ypos0"), queue.getResult("yneg0"), queue.getResult("zpos0"), queue.getResult("zneg0"));
+            var textureSkybox1 = createSkyboxTexture(gl, queue.getResult("xpos1"), queue.getResult("xneg1"),
+                queue.getResult("ypos1"), queue.getResult("yneg1"), queue.getResult("zpos1"), queue.getResult("zneg1"));
+            var textureSkybox2 = createSkyboxTexture(gl, queue.getResult("xpos2"), queue.getResult("xneg2"),
+                queue.getResult("ypos2"), queue.getResult("yneg2"), queue.getResult("zpos2"), queue.getResult("zneg2"));
+            var textureSkies = [textureSkybox0, textureSkybox1, textureSkybox2];
             var textureRain = createTexture(gl, queue.getResult("rain"));
             var textureSnow = createTexture(gl, queue.getResult("snow"));
 
@@ -1172,7 +1194,7 @@
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 if (spaceMode) {
-                    drawSky(gl, textureSkybox);
+                    drawSky(gl, textureSkies[skyIdx]);
                 }
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
                 //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
@@ -1365,7 +1387,7 @@
             var skybox = [];
             function drawSky(gl, tex) {
                 if (skybox.length == 0) {
-                    skybox = createSkyCube(gl, lastX - 25, lastY - 25, -25, 50);
+                    skybox = createSkyCube(gl, lastX - 15, lastY - 15, -15, 30);
                 }
                 skybox.forEach(skyboxShape => drawSkybox(gl, skyboxShape, tex, mat4.create()));
             }
@@ -1461,7 +1483,7 @@
 
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 if (spaceMode) {
-                    skybox = createSkyCube(gl, lastX - 25, lastY - 25, -25, 50);
+                    skybox = createSkyCube(gl, lastX - 15, lastY - 15, -15, 30);
                 } else {
                     new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
                 }
