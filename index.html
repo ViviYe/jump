@@ -54,12 +54,10 @@
             font-size: 25px;
             cursor: pointer;
         }
-
         /* Darker background on mouse-over */
         .btn:hover {
             background-color: #AFD0D7;
         }
-
         .icons {
             margin-left: 350px;
         }
@@ -90,12 +88,10 @@
         attribute vec3 vert_position;
         attribute vec2 vert_texCoord;
         attribute vec3 vert_normal;
-
         varying vec2 vUv;
         varying vec3 vNormal; // normal at the vertex in eye space
         varying vec4 vPosition; // vertex position in eye space
         varying vec3 vertPos;
-
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
@@ -104,17 +100,14 @@
         uniform mat4 xform_rotMat;
         uniform mat4 xform_scaleMat;
         uniform float isCharacter;
-
         void main() {
             // Calculate point in eye space
             vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
     
             vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
             vertPos = vec3(vertPos4) / vertPos4.w;
-
             // Calculate projected point 
             gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
-
             vNormal = normalize(vert_normal);
             vUv = vert_texCoord;
         }
@@ -123,12 +116,10 @@
     <script id="skyboxVertexShader" type="x-shader/x-vertex">
         attribute vec3 vert_position;
         varying vec3 vNormal; // normal at the vertex in eye space
-
         uniform mat4 xform_projMat;
         uniform mat4 xform_viewMat;
         uniform mat4 xform_modelMat;
         uniform mat4 transform_Mat;
-
         void main() {
             gl_Position = xform_projMat * xform_viewMat * (xform_modelMat * (transform_Mat * (vec4(vert_position, 1.0))));
             vNormal = normalize(vert_position);
@@ -141,10 +132,8 @@
         varying vec3 vNormal; // fragment normal in eye space
         varying vec4 vPosition; // fragment position in eye space
         varying vec3 vertPos;
-
         uniform sampler2D texture;
         uniform float isCharacter;
-
         void main() {
             float shininess = 300.0;
             vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
@@ -172,7 +161,6 @@
 
     <script id="skyboxFragmentShader" type="x-shader/x-fragment">
         precision highp float;
-
         uniform samplerCube uTexture;
         
         varying vec3 vNormal;
@@ -188,14 +176,10 @@
         var snowing = false;
         var spaceMode = false;
         var score = 0;
-
         var transform_rain_2 = mat4.create();
-
         var transform_snow_2 = mat4.create();
-
         var lastX = 0;
         var lastY = 0;
-
         var rain, snow = [];
         var curdir;
         var rainHeight = 0;
@@ -206,55 +190,42 @@
             maze = getInitWorld();
             shouldUpdate = true;
         }
-
         updateMaze();
         $("#updateMazeButton").click(updateMaze);
-
         var characterheight = 13;
         var drop_character = mat4.create();
         var initshift = vec3.create();
-
         vec3.set(initshift, 0, 0, 13);
         drop_character = mat4.fromTranslation(drop_character, initshift);
-
         var transform_character = mat4.create();
         var rotate_character = mat4.create();
         var init = true;
-
         function enableRain() {
             raining = !raining;
             if (raining) snowing = false;
         }
-        function reset(){
+        function reset() {
             shouldUpdate = true;
         }
-
         function enableSnow() {
             snowing = !snowing;
             if (snowing) raining = false;
         }
-
         function enableSkybox() {
             spaceMode = !spaceMode;
             if (!spaceMode) skybox = [];
         }
         var skyIdx = 0;
-        
-        function nextSkybox() {
-            if (spaceMode)
-                skyIdx = (skyIdx + 1) > 2 ? 0 : skyIdx + 1;
-
         function prevSkybox() {
             if (spaceMode)
-                skyIdx = (skyIdx - 1) < 0 ? 2 : skyIdx - 1;
-
+                skyIdx = skyIdx + 1 > 2 ? 0 : skyIdx + 1;
         }
-
+        function nextSkybox() {
+            if (spaceMode)
+                skyIdx = skyIdx - 1 < 0 ? 2 : skyIdx - 1;
+        }
         function reset() {
-
         }
-
-
         function createShapeData() {
             return {
                 positions: [],
@@ -263,170 +234,119 @@
                 indices: []
             }
         }
-
         function createNorthWall(x, y, z, length) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, -1.0, 0.0);
             }
-
             shapeData.positions.push(x, y + length, z);
             shapeData.texCoords.push(1.0, 0.0);
-
             shapeData.positions.push(x + length, y + length, z);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x + length, y + length, z + length);
             shapeData.texCoords.push(0.0, 1.0);
-
             shapeData.positions.push(x, y + length, z + length);
             shapeData.texCoords.push(1.0, 1.0);
-
             return shapeData;
         }
-
         function createSouthWall(x, y, z, length) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, 1.0, 0.0);
             }
-
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x, y, z + length);
             shapeData.texCoords.push(0.0, 1.0);
-
             shapeData.positions.push(x + length, y, z + length);
             shapeData.texCoords.push(1.0, 1.0);
-
             shapeData.positions.push(x + length, y, z);
             shapeData.texCoords.push(1.0, 0.0);
-
             return shapeData;
         }
-
-
         function createWestWall(x, y, z, length) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(1.0, 0.0, 0.0);
             }
-
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(1.0, 0.0);
-
-
             shapeData.positions.push(x, y + length, z);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x, y + length, z + length);
             shapeData.texCoords.push(0.0, 1.0);
-
             shapeData.positions.push(x, y, z + length);
             shapeData.texCoords.push(1.0, 1.0);
-
             return shapeData;
         }
-
-
         function createEastWall(x, y, z, length) {
             var shapeData = createShapeData();
             var v = 0;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(-1.0, 0.0, 0.0);
             }
-
             shapeData.positions.push(x + length, y, z);
             shapeData.texCoords.push(0.0, 0.0);
-
-
             shapeData.positions.push(x + length, y + length, z);
             shapeData.texCoords.push(1.0, 0.0);
-
             shapeData.positions.push(x + length, y + length, z + length);
             shapeData.texCoords.push(1.0, 1.0);
-
-
             shapeData.positions.push(x + length, y, z + length);
             shapeData.texCoords.push(0.0, 1.0);
             return shapeData;
         }
-
-
         function createFloor(x, y, z, length) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, 0.0, 1.0);
             }
-
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x + length, y, z);
             shapeData.texCoords.push(1.0, 0.0);
-
             shapeData.positions.push(x + length, y + length, z);
             shapeData.texCoords.push(1.0, 1.0);
-
             shapeData.positions.push(x, y + length, z);
             shapeData.texCoords.push(0.0, 1.0);
-
             return shapeData;
         }
-
         function createBigFloor(x, y, z, delta) {
-
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, 0.0, 1.0);
             }
-
             shapeData.positions.push(x, y, z);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x + delta, y, z);
             shapeData.texCoords.push(1.0, 0.0);
-
             shapeData.positions.push(x + delta, y + delta, z);
             shapeData.texCoords.push(1.0, 1.0);
-
             shapeData.positions.push(x, y + delta, z);
             shapeData.texCoords.push(0.0, 1.0);
-
             return shapeData;
         }
-
-
         function createGround(gl, x, y, z) {
             shapes = [];
             shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
             return shapes;
         }
-
         function createSphere(x, y, z, r) {
             // x, y, z are the center
             var shapeData = createShapeData();
@@ -435,7 +355,6 @@
             var i, ai, si, ci;
             var j, aj, sj, cj;
             var p1, p2;
-
             for (j = 0; j <= SPHERE_DIV; j++) {
                 aj = j * Math.PI / SPHERE_DIV;
                 sj = Math.sin(aj);
@@ -456,12 +375,8 @@
                     shapeData.indices.push(p1, p2, p1 + 1, p1 + 1, p2, p2 + 1);
                 }
             }
-
             return shapeData;
         }
-
-
-
         function createCylinder(x, y, z, h, r) {
             var div = 0.75;
             var shapeData = createShapeData();
@@ -491,58 +406,42 @@
             }
             return shapeData;
         }
-
         function createRoof(x, y, z, length) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, 0.0, -1.0);
             }
-
             shapeData.positions.push(x, y, z + length);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x, y + length, z + length);
             shapeData.texCoords.push(1.0, 0.0);
-
             shapeData.positions.push(x + length, y + length, z + length);
             shapeData.texCoords.push(1.0, 1.0);
-
             shapeData.positions.push(x + length, y, z + length);
             shapeData.texCoords.push(0.0, 1.0);
             return shapeData;
         }
-
         function createShadow(x, y, z) {
             var shapeData = createShapeData();
             var v = shapeData.positions.length / 3;
             shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
             var i;
             for (i = 0; i < 4; i++) {
                 shapeData.normals.push(0.0, 0.0, -1.0);
             }
-
             shapeData.positions.push(x - 0.2, y - 0.2, z + 0.01);
             shapeData.texCoords.push(0.0, 0.0);
-
             shapeData.positions.push(x + 0.8, y - 0.2, z + 0.01);
             shapeData.texCoords.push(0.0, 1.0);
-
             shapeData.positions.push(x + 1, y, z + 0.01);
             shapeData.texCoords.push(1.0, 1.0);
-
             shapeData.positions.push(x, y + 1, z + 0.01);
             shapeData.texCoords.push(1.0, 0.0);
-
             return shapeData;
-
         }
-
-
         function createCube(gl, x, y, z, tex, length) {
             var cube = {
                 shapes: [],
@@ -559,8 +458,6 @@
             cube.shadow.push(createShape(gl, createShadow(x, y, z)));
             return cube;
         }
-
-
         function createCharacter(gl, tex) {
             var character = {
                 shapes: [],
@@ -570,13 +467,11 @@
             character.shapes.push(createShape(gl, createCylinder(5.5, 5.5, 14, 0.7, 0.18)));
             return character;
         }
-
         function createGround(gl, x, y, z) {
             shapes = [];
             shapes.push(createShape(gl, createBigFloor(x, y, z, 30)));
             return shapes;
         }
-
         function createSkyboxTexture(gl, xpos, xneg, ypos, yneg, zpos, zneg) {
             texID = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texID);
@@ -588,12 +483,10 @@
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, zneg);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             return texID;
         }
-
         function createCharacter(gl, tex) {
             var character = {
                 shapes: [],
@@ -604,27 +497,21 @@
             character.shapes.push(createShape(gl, createCylinder(0.5, 0.5, 0, 0.7, 0.18)));
             return character;
         }
-
         function startWebGL() {
             var queue = new createjs.LoadQueue(true);
-
             // character texture
             queue.loadManifest(["data/dark-blue.jpeg", { id: "character", src: "data/dark-blue.jpeg" }]);
-
             // floor texture
             queue.loadManifest(["data/light-grey.jpeg", { id: "floor", src: "data/light-grey.jpeg" }]);
             queue.loadManifest(["data/black.jpg", { id: "shadow", src: "data/black.jpg" }]);
-
             // cube textures
             queue.loadManifest(["data/blue-grey.jpeg", { id: "blue-grey", src: "data/blue-grey.jpeg" }]);
             queue.loadManifest(["data/skin.jpeg", { id: "skin", src: "data/skin.jpeg" }]);
             queue.loadManifest(["data/light-salmon.jpeg", { id: "light-salmon", src: "data/light-salmon.jpeg" }]);
             queue.loadManifest(["data/aqua.jpeg", { id: "aqua", src: "data/aqua.jpeg" }]);
             queue.loadManifest(["data/peach.jpeg", { id: "peach", src: "data/peach.jpeg" }]);
-
             // rain texture
             queue.loadManifest(["data/rain.png", { id: "rain", src: "data/rain.png" }]);
-
             // snow texture
             queue.loadManifest(["data/white.png", { id: "snow", src: "data/white.png" }]);
 
@@ -649,8 +536,6 @@
             queue.loadManifest(["data/skybox/red/up.png", { id: "yneg2", src: "data/skybox/red/up.png" }]);
             queue.loadManifest(["data/skybox/red/ft.png", { id: "zpos2", src: "data/skybox/red/ft.png" }]);
             queue.loadManifest(["data/skybox/red/bk.png", { id: "zneg2", src: "data/skybox/red/bk.png" }]);
-
-
             queue.on("complete", function (event) {
                 runWebGL(queue);
             });
@@ -660,15 +545,11 @@
             var NO_CONTROL = 0;
             var IS_ROTATING = 1;
             var IS_MOVING = 2;
-
             var NO_ACTION = 0;
             var COMPRESSING = 1;
             var JUMPING = 2;
             var FAILING = 4;
             var DEAD = 5;
-
-
-
             var control = {
                 mode: NO_CONTROL,
                 state: NO_ACTION,
@@ -684,15 +565,12 @@
                 toPosition: null
             };
             startPos = maze.startPosition;
-
             control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                 startPos[1] * 1.0 + 0.5,
                 0.0);
-
             var webglCanvas = $("#webglCanvas");
             var webglCanvas2 = $("#webglCanvas2");
             var clientRect = webglCanvas[0].getBoundingClientRect();
-
             function decelerateStep(decelTheta, decelPhi) {
                 if (!decelerating) {
                     return;
@@ -711,53 +589,45 @@
                 } else {
                     decelerating = false;
                 }
-
             }
-
             function decelerate() {
                 var firstPoint = trackingPoints[0];
                 var lastPoint = trackingPoints[trackingPoints.length - 1];
-
                 var thetaOffset = lastPoint.theta - firstPoint.theta;
                 var phiOffset = lastPoint.phi - firstPoint.phi;
                 var timeOffset = lastPoint.time - firstPoint.time;
-
                 var D = (timeOffset / 15);
-
                 var decelTheta = (thetaOffset / D) || 0; // prevent NaN
                 var decelPhi = (phiOffset / D) || 0;
                 decelerating = true;
                 control.currentHeading += thetaShift / 80 * (getFov() / 2);
                 control.zHeading -= phiShift / 80 * (getFov() / 2);
-
                 thetaShift = 0.0;
                 phiShift = 0.0;
                 window.requestAnimationFrame(() => decelerateStep(decelTheta, decelPhi));
                 trackingPoints = [];
             }
-
             var textureCharacter = createTexture(gl, queue.getResult("character"));
             var textureFloor = createTexture(gl, queue.getResult("floor"));
             var textureShadow = createTexture(gl, queue.getResult("shadow"));
-
             var textureBlueGrey = createTexture(gl, queue.getResult("blue-grey"));
             var textureSkin = createTexture(gl, queue.getResult("skin"));
             var textureLightSalmon = createTexture(gl, queue.getResult("light-salmon"));
             var textureAqua = createTexture(gl, queue.getResult("aqua"));
             var texturePeach = createTexture(gl, queue.getResult("peach"));
             cubetextures = [textureBlueGrey, textureSkin, textureAqua, texturePeach];
-
-
+            
             var textureSkybox0 = createSkyboxTexture(gl, queue.getResult("xpos0"), queue.getResult("xneg0"),
                 queue.getResult("ypos0"), queue.getResult("yneg0"), queue.getResult("zpos0"), queue.getResult("zneg0"));
             var textureSkybox1 = createSkyboxTexture(gl, queue.getResult("xpos1"), queue.getResult("xneg1"),
                 queue.getResult("ypos1"), queue.getResult("yneg1"), queue.getResult("zpos1"), queue.getResult("zneg1"));
             var textureSkybox2 = createSkyboxTexture(gl, queue.getResult("xpos2"), queue.getResult("xneg2"),
                 queue.getResult("ypos2"), queue.getResult("yneg2"), queue.getResult("zpos2"), queue.getResult("zneg2"));
-            var textureSkies = [textureSkybox0, textureSkybox1, textureSkybox2];
+            var skyboxes = [textureSkybox0, textureSkybox1, textureSkybox2];
+
+
             var textureRain = createTexture(gl, queue.getResult("rain"));
             var textureSnow = createTexture(gl, queue.getResult("snow"));
-
             program0 = createGlslProgram(gl, "vertexShader0", "fragmentShader0");
             program0.texture = gl.getUniformLocation(program0, "texture");
             program0.xform_projMat = gl.getUniformLocation(program0, "xform_projMat");
@@ -771,7 +641,6 @@
             program0.vert_normal = gl.getAttribLocation(program0, "vert_normal");
             program0.isCharacter = gl.getUniformLocation(program0, "isCharacter");
             var lastTime = performance.now();
-
             program0.draw = function (gl, shape, initialize) {
                 gl.useProgram(program0);
                 initialize();
@@ -788,7 +657,6 @@
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
                 gl.useProgram(null);
             };
-
             programSky = createGlslProgram(gl, "skyboxVertexShader", "skyboxFragmentShader");
             programSky.texture = gl.getUniformLocation(programSky, "uTexture");
             programSky.xform_projMat = gl.getUniformLocation(programSky, "xform_projMat");
@@ -796,21 +664,18 @@
             programSky.xform_modelMat = gl.getUniformLocation(programSky, "xform_modelMat");
             programSky.vert_position = gl.getAttribLocation(programSky, "vert_position");
             programSky.transform_Mat = gl.getUniformLocation(programSky, "transform_Mat");
-
             programSky.draw = function (gl, shape, initialize) {
                 gl.useProgram(programSky);
                 initialize();
                 gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
                 gl.enableVertexAttribArray(programSky.vert_position);
                 gl.vertexAttribPointer(programSky.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
-
                 gl.bindBuffer(gl.ARRAY_BUFFER, null);
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
                 gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
                 gl.useProgram(null);
             };
-
             function getNormalMatrix() {
                 var normalMat = mat4.create();
                 var modelViewMat = mat4.create();
@@ -819,7 +684,6 @@
                 mat4.transpose(normalMat, normalMat);
                 return normalMat;
             }
-
             function getViewMatrix() {
                 var viewMat = mat4.create();
                 var eye = vec3.fromValues(
@@ -841,19 +705,15 @@
                 shapeMoved = false;
                 return viewMat;
             }
-
-
             function addTrackingPoint(theta, phi) {
                 var time = Date.now();
                 trackingPoints.push({ theta, phi, time });
             }
-
             webglCanvas2.bind('mousewheel', function (e) {
                 isScroll = true;
                 projDist = e.originalEvent.wheelDelta;
                 return false;
             });
-
             webglCanvas2.bind('mousemove', function (e) {
                 if (mouse.mouseDown) {
                     mouse.mouseDragged = true;
@@ -883,14 +743,12 @@
                     prevMouseDown = true;
                 }
             });
-
             webglCanvas2.mousedown(function (event) {
                 if (event.button == 0) {
                     mouse.mouseDown = true;
                     mouse.mouseDragged = false;
                 }
             })
-
             $(document).mouseup(function (event) {
                 if (event.button == 0) {
                     mouse.mouseDown = false;
@@ -904,10 +762,8 @@
                         addTrackingPoint(curTheta, curPhi);
                         window.requestAnimationFrame(() => decelerate());
                     }
-
                 }
             });
-
             var compress_time;
             var release_time;
             var prevShiftDown = false;
@@ -915,7 +771,6 @@
             var cubeHeight = 1;
             var compressScale = 0.999;
             var scale_matrix_1 = mat4.create();
-
             function drawRain(gl, shape, dropmat, texture) {
                 program1.draw(gl, shape, function () {
                     if (program1.xform_projMat != null) {
@@ -942,7 +797,6 @@
                 });
             }
             var compressedTime;
-
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
                     if (program0.xform_projMat != null) {
@@ -985,7 +839,6 @@
                     }
                 });
             }
-
             function drawSkybox(gl, shape, texture, transmat) {
                 programSky.draw(gl, shape, function () {
                     if (programSky.xform_projMat != null) {
@@ -1000,7 +853,6 @@
                     if (transmat != null) {
                         if (programSky.transform_Mat != null) {
                             gl.uniformMatrix4fv(programSky.transform_Mat, false, transmat);
-
                         }
                     }
                     if (programSky.texture != null) {
@@ -1012,15 +864,12 @@
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                     }
                 });
-
             }
-
             var dropSpeed = 0.008;
             var rainDropSpeed = 0.008;
             var snowDropSpeed = 0.00008;
             var first_cube = [];
             //  var onFirst = true;
-
             function resetCubeMatrices() {
                 transform_matrix_1 = mat4.clone(transform_matrix_2);
                 transform_matrix_2 = mat4.create();
@@ -1043,7 +892,6 @@
                 decelRate2 = 0.1;
                 dropSpeed = 0.008;
             }
-
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -1057,7 +905,6 @@
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
             }
-
             function dropNewBox() {
                 resetCubeMatrices();
                 randDirAndDist();
@@ -1089,7 +936,6 @@
                     0.0
                 )
             }
-
             webglCanvas2.keydown(function (event) {
                 if (event.key == "Shift") {
                     if (control.state == NO_ACTION && finishbouncing) {
@@ -1121,26 +967,19 @@
                 }
                 return false;
             });
-
             webglCanvas2.keyup(function (event) {
-
                 if (event.key == "Shift") {
                     if (control.state == COMPRESSING) {
                         control.state = JUMPING;
                         control.time = Date.now();
-
                         dropNewBox();
                         release_time = Date.now();
                         cubeHeight = 1;
-
                         prevShiftDown = false;
                     }
-
                 }
                 return false;
-
             });
-
             function reset() {
                 control = {
                     mode: NO_CONTROL,
@@ -1158,17 +997,14 @@
                     toPosition: null
                 };
                 startPos = maze.startPosition;
-
                 control.currentPosition = vec3.fromValues(startPos[0] * 1.0 + 0.5,
                     startPos[1] * 1.0 + 0.5,
                     0.0);
-
                 first_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_ground = createGround(gl, -15, -15, 0);
                 current_cube = [];
                 character = createCharacter(gl, textureCharacter);
                 dropNewBox();
-
             }
             function dropOnce(transmat, dropmat) {
                 // transform after drop
@@ -1184,27 +1020,21 @@
                     window.requestAnimationFrame(() => dropOnce(transmat, drop_character));
                 }
             }
-
             var bouncing = false;
-
-
             function drawCube(transmat, dropmat, compressmat) {
                 if (snowing) {
                     gl.clearColor(0.1, 0.1, 0.1, 0.0);
-
                 } else {
                     gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
                 }
                 gl.clearDepth(1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.enable(gl.DEPTH_TEST);
                 if (spaceMode) {
-                    drawSky(gl, textureSkies[skyIdx]);
+                    drawSky(gl, skyboxes[skyIdx]);
                 }
                 all_cubes.forEach(cubes => (cubes.shapes).forEach(shape => drawShape(gl, shape, cubes.texture, transmat, false, transform_matrix_3)));
                 //  all_cubes.forEach(cubes => (cubes.shadow).forEach(shape => drawShape(gl, shape, textureShadow, transmat, false, transform_matrix_3)));
-
                 if (!spaceMode) {
                     ground.forEach(cube => cube.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3)));
                     new_ground.forEach(shape => drawShape(gl, shape, textureFloor, transform_matrix_3, false, transform_matrix_3));
@@ -1221,18 +1051,13 @@
                         (first_cube.shapes).forEach(shape => drawShape(gl, shape, first_cube.texture, transform_matrix_3, false, compressmat));
                     }
                 }
-
             }
-
-
             function drawRainDrop(dropmat) {
                 rain.forEach(rainDrop => (rainDrop.shapes).forEach(shape => drawShape(gl, shape, new_rainDrop.texture, dropmat, false)))
             }
-
             function drawSnowflake(dropmat) {
                 snow.forEach(snowflake => (snowflake.shapes).forEach(shape => drawShape(gl, shape, new_snowflake.texture, dropmat, false)))
             }
-
             function dropCube(transmat, dropmat) {
                 drawCube(transmat, dropmat, transform_matrix_3);
                 if (height > -5) {
@@ -1248,7 +1073,6 @@
                     window.requestAnimationFrame(() => dropCube(transmat, droptranslation));
                 }
             }
-
             function dropRain(dropmat) {
                 drawRainDrop(dropmat);
                 if (rainHeight > -8) {
@@ -1261,7 +1085,6 @@
                     window.requestAnimationFrame(() => dropRain(droptranslation));
                 }
             }
-
             function dropSnow(dropmat) {
                 drawSnowflake(dropmat);
                 if (snowHeight > -8) {
@@ -1274,7 +1097,6 @@
                     window.requestAnimationFrame(() => dropSnow(droptranslation));
                 }
             }
-
             var decelRate = 0.99;
             var decelRate2 = 0.0015;
             var maxHeight = 0.7;
@@ -1283,7 +1105,6 @@
             var dropping = false;
             var eps = 0.1;
             var finishbouncing = true;
-
             function bounce(transmat, dropmat) {
                 drawCube(transmat, dropmat, transform_matrix_3);
                 if (maxHeight < eps) {
@@ -1307,7 +1128,6 @@
                 transform_matrix_2 = droptranslation;
                 window.requestAnimationFrame(() => bounce(transmat, droptranslation));
             }
-
             var compressDecel = 0.00025;
             function compressBox(transmat, compressmat) {
                 if (prevShiftDown)
@@ -1323,32 +1143,24 @@
                     window.requestAnimationFrame(() => compressBox(transmat, compressScaleMat));
                 }
             }
-
             function createRainDrop(x, y, z) {
                 var shapeData = createShapeData();
                 var v = shapeData.positions.length / 3;
                 shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
                 var i;
                 for (i = 0; i < 4; i++) {
                     shapeData.normals.push(0.0, -1.0, 0.0);
                 }
-
                 var xDelta = Math.floor((Math.random() * 3) + 1) / 100;
                 var yDelta = Math.floor((Math.random() * 3) + 2) / 10;
-
                 shapeData.positions.push(x, y + yDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
-
                 shapeData.positions.push(x + xDelta, y + yDelta, z);
                 shapeData.texCoords.push(0.0, 0.0);
-
                 shapeData.positions.push(x + xDelta, y + yDelta, z + yDelta);
                 shapeData.texCoords.push(0.0, 1.0);
-
                 shapeData.positions.push(x, y + yDelta, z + yDelta);
                 shapeData.texCoords.push(1.0, 1.0);
-
                 return shapeData;
             }
             function createSkyShape(gl, shapeData) {
@@ -1376,7 +1188,6 @@
                 shape.positionOffset = 4 * 0;
                 return shape;
             }
-
             function createSkyCube(gl, x, y, z, length) {
                 var cube = [];
                 //var positions = 
@@ -1389,11 +1200,10 @@
                 // console.log(cube);
                 return cube;
             }
-
             var skybox = [];
             function drawSky(gl, tex) {
                 if (skybox.length == 0) {
-                    skybox = createSkyCube(gl, lastX - 15, lastY - 15, -15, 30);
+                    skybox = createSkyCube(gl, lastX - 25, lastY - 25, -25, 50);
                 }
                 skybox.forEach(skyboxShape => drawSkybox(gl, skyboxShape, tex, mat4.create()));
             }
@@ -1401,30 +1211,21 @@
                 var shapeData = createShapeData();
                 var v = shapeData.positions.length / 3;
                 shapeData.indices.push(v, v + 1, v + 2, v, v + 2, v + 3);
-
                 var i;
                 for (i = 0; i < 4; i++) {
                     shapeData.normals.push(0.0, -1.0, 0.0);
                 }
-
                 var xDelta = Math.floor((Math.random() * 3) + 1) / 30;
-
                 shapeData.positions.push(x, y + xDelta, z);
                 shapeData.texCoords.push(1.0, 0.0);
-
                 shapeData.positions.push(x + xDelta, y + xDelta, z);
                 shapeData.texCoords.push(0.0, 0.0);
-
                 shapeData.positions.push(x + xDelta, y + xDelta, z + xDelta);
                 shapeData.texCoords.push(0.0, 1.0);
-
                 shapeData.positions.push(x, y + xDelta, z + xDelta);
                 shapeData.texCoords.push(1.0, 1.0);
-
                 return shapeData;
             }
-
-
             function createRainDrops(gl, x, y, z, tex) {
                 var rainDrop = {
                     shapes: [],
@@ -1434,7 +1235,6 @@
                 rainDrop.shapes.push(createShape(gl, createRainDrop(x, y, z)));
                 return rainDrop;
             }
-
             function createSnowflakes(gl, x, y, z, tex) {
                 var snowflake = {
                     shapes: [],
@@ -1444,7 +1244,6 @@
                 snowflake.shapes.push(createShape(gl, createSnowflake(x, y, z)));
                 return snowflake;
             }
-
             function resetRainDropMatrices() {
                 rain = [];
                 rainHeight = 0;
@@ -1458,7 +1257,6 @@
                     }
                 }
             }
-
             function resetSnowflakeMatrices() {
                 snow = [];
                 snowHeight = 0;
@@ -1472,7 +1270,6 @@
                     }
                 }
             }
-
             function randDirAndDist() {
                 var randDir = Math.floor(Math.random() * (+4 - +0)) + +0;
                 dis = Math.random() * (+3.5 - +1.5) + +1.5;
@@ -1486,18 +1283,15 @@
                     //     dir = 3;
                     //     lastY -= dis;
                 } else randDirAndDist();
-
                 new_cube = createCube(gl, lastX, lastY, 5, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 if (spaceMode) {
-                    skybox = createSkyCube(gl, lastX - 15, lastY - 15, -15, 30);
+                    skybox = createSkyCube(gl, lastX - 25, lastY - 25, -25, 50);
                 } else {
                     new_ground = createGround(gl, lastX - 20, lastY - 20, 0);
                 }
             }
-
             setInterval(function () { if (raining) resetRainDropMatrices(); }, 800);
             setInterval(function () { if (snowing) resetSnowflakeMatrices(); }, 1000);
-
             function updateDropMatrix() {
                 var newdrop = mat4.create();
                 mat4.multiply(newdrop, transform_character, drop_character);
@@ -1505,13 +1299,11 @@
                 drop_character = newdrop;
                 control.state = NO_ACTION;
             }
-
             var h;
             var r;
             var l;
             var currentposx = 0.5;
             var currentposy = 0.5;
-
             function jump(t, dir, compressedtime) {
                 // console.log(compressedtime);
                 h = (-1 * (2 - t) * (2 - t) + 4) * 0.5;
@@ -1519,7 +1311,6 @@
                 if (h <= 0) {
                     var errormat = mat4.create();
                     var error = vec3.create();
-
                     if (curdir == 0) {
                         vec3.set(error, r, 0, 0);
                         mat4.fromTranslation(errormat, error);
@@ -1543,14 +1334,12 @@
                         score++;
                         displayScore();
                     }
-
                 } else {
                     var transMat = mat4.create();
                     var rotateMat = mat4.create();
                     var shift = vec3.create();
                     var axis = vec3.create();
                     var x = t;
-
                     if (curdir == 0) {
                         r = x * compressedtime * 0.2;
                         var angle = Math.PI * 2 * (t / 4.0);
@@ -1562,9 +1351,7 @@
                         mat4.multiply(transMat, move, transMat);
                         mat4.multiply(transMat, transMat, rotateMat);
                         transform_character = transMat;
-
                     } else {
-
                         l = x * compressedtime * 0.2;
                         var angle = -1 * Math.PI * 2 * (t / 4.0);
                         var move = mat4.create();
@@ -1575,24 +1362,18 @@
                         mat4.multiply(transMat, move, transMat);
                         mat4.multiply(transMat, transMat, rotateMat);
                         transform_character = transMat;
-
                     }
-
                 }
             }
-
             function displayGameOver() {
                 const canvas = document.getElementById('webglCanvas2');
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = "#787878";
                 ctx.font = '50px avenir';
-                var textString = "game over!",
-                    textWidth = ctx.measureText(textString).width;
-                ctx.translate(0.5, 0.5);
-
+                var textString = "game over!";
+                var textWidth = ctx.measureText(textString).width;
                 ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), (canvas.height / 2));
             }
-
             function displayScore() {
                 const canvas = document.getElementById('webglCanvas2');
                 const ctx = canvas.getContext('2d');
@@ -1604,16 +1385,16 @@
                 var h = (canvas.height / 7);
                 ctx.clearRect(w - 50, h - 50, 300, 300);
                 ctx.fillText(textString, w, h);
-
             }
-
             function check_not_fall() {
-                var xlower = current_cube.pos[0] - 0.5;
-                var xhigher = current_cube.pos[0] + 0.5;
-                var ylower = current_cube.pos[1] - 0.5;
-                var yhigher = current_cube.pos[1] + 0.5;
+                var charRad = 0.18;
+                var cubeRad = 0.5;
+                var delta = charRad + cubeRad;
+                var xlower = current_cube.pos[0] - delta;
+                var xhigher = current_cube.pos[0] + delta;
+                var ylower = current_cube.pos[1] - delta;
+                var yhigher = current_cube.pos[1] + delta;
                 return currentposx > xlower && currentposx < xhigher && currentposy > ylower && currentposy < yhigher;
-
             }
             function compress(t) {
                 var trans_Mat = mat4.create();
@@ -1623,10 +1404,7 @@
                 mat4.fromTranslation(trans_Mat, shift);
                 transform_character = trans_Mat;
             }
-
-
-
-            function updateWebGL() {           
+            function updateWebGL() {
                 displayScore();
                 if (shouldUpdate) {
                     shouldUpdate = false;
@@ -1656,7 +1434,6 @@
                             control.mode = NO_CONTROL;
                         }
                     }
-
                 } else if (control.mode == IS_MOVING) {
                     var movex = 0;
                     var movey = 0;
@@ -1701,12 +1478,10 @@
                     window.requestAnimationFrame(() => dropCube(mat4.clone(transform_matrix_1), mat4.clone(transform_matrix_2)));
                 }
                 // window.requestAnimationFrame(() => dropOnce(transform_character, drop_character));
-
                 if (raining) {
                     // window.requestAnimationFrame(() => dropRain(mat4.clone(transform_rain_2)));
                     dropRain(mat4.clone(transform_rain_2));
                     // window.requestAnimationFrame(() => dropCharacter(mat4.clone(transform_character), mat4.clone(transform_character)));
-
                 }
                 if (snowing) {
                     dropSnow(mat4.clone(transform_snow_2));
@@ -1718,15 +1493,14 @@
                     compress((Date.now() - control.time) / 300);
                 } else if (control.state == FAILING) {
                     //   comeback((release_time - compress_time) / 300);
-                } 
+                } else {
+                }
                 dropOnce(transform_character, drop_character);
                 window.requestAnimationFrame(updateWebGL);
-
             }
             window.requestAnimationFrame(updateWebGL);
         }
         startWebGL();
-
     </script>
 
 
