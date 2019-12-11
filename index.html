@@ -54,10 +54,12 @@
             font-size: 25px;
             cursor: pointer;
         }
+
         /* Darker background on mouse-over */
         .btn:hover {
             background-color: #AFD0D7;
         }
+
         .icons {
             margin-left: 350px;
         }
@@ -180,7 +182,8 @@
         var transform_snow_2 = mat4.create();
         var lastX = 0;
         var lastY = 0;
-        var rain, snow = [];
+        var rain = [];
+        var snow = [];
         var curdir;
         var rainHeight = 0;
         var snowHeight = 0;
@@ -614,7 +617,7 @@
             var textureAqua = createTexture(gl, queue.getResult("aqua"));
             var texturePeach = createTexture(gl, queue.getResult("peach"));
             cubetextures = [textureBlueGrey, textureSkin, textureAqua, texturePeach];
-            
+
             var textureSkybox0 = createSkyboxTexture(gl, queue.getResult("xpos0"), queue.getResult("xneg0"),
                 queue.getResult("ypos0"), queue.getResult("yneg0"), queue.getResult("zpos0"), queue.getResult("zneg0"));
             var textureSkybox1 = createSkyboxTexture(gl, queue.getResult("xpos1"), queue.getResult("xneg1"),
@@ -1000,7 +1003,7 @@
                     0.0);
                 first_cube = createCube(gl, 0, 0, 0, cubetextures[Math.floor(Math.random() * cubetextures.length)], 1);
                 new_cube = [];
-                
+
                 new_ground = createGround(gl, -15, -15, 0);
                 lastX = 0;
                 lastY = 0;
@@ -1021,8 +1024,8 @@
 
 
                 const canvas = document.getElementById('webglCanvas2');
-                const ctx = canvas.getContext('2d');           
-                ctx.clearRect(0, 0,canvas.width ,canvas.height);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 score = 0;
 
             }
