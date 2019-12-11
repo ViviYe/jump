@@ -1200,7 +1200,7 @@ function createGround(gl, x, y, z) {
                 if (height > -5) {
                     finishbouncing = false;
                     height = height - dropSpeed;
-                    dropSpeed *= 1.0014;
+                    dropSpeed *= 1.003;
                     if (height <= -5)
                         bouncing = true;
                     var drop = vec3.create();
