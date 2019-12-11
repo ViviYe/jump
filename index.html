@@ -88,41 +88,6 @@
         }
     </script>
 
-    <script id="vertexShader1" type="x-shader/x-vertex">
-        attribute vec3 vert_position;
-        attribute vec2 vert_texCoord;
-        attribute vec3 vert_normal;
-
-        varying vec2 vUv;
-        varying vec3 vNormal; // normal at the vertex in eye space
-        varying vec4 vPosition; // vertex position in eye space
-        varying vec3 vertPos;
-
-        uniform mat4 xform_projMat;
-        uniform mat4 xform_viewMat;
-        uniform mat4 xform_modelMat;
-        uniform mat4 transform_Mat;
-        uniform mat4 xform_normalMat;
-        uniform mat4 xform_rotMat;
-        uniform mat4 xform_scaleMat;
-        uniform float isCharacter;
-
-        void main() {
-            // Calculate point in eye space
-            vPosition = xform_projMat * xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-    
-            vec4 vertPos4 = xform_viewMat * (xform_modelMat * (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0))));
-            vertPos = vec3(vertPos4) / vertPos4.w;
-
-            // Calculate projected point 
-            gl_Position = xform_projMat * (xform_viewMat * (xform_modelMat *  (xform_scaleMat * transform_Mat * (vec4(vert_position, 1.0)))));
-            
-            vNormal = normalize(vert_normal);
-            vUv = vert_texCoord;
-        }
-    </script>
-
-
     <script id="skyboxVertexShader" type="x-shader/x-vertex">
         attribute vec3 vert_position;
         varying vec3 vNormal; // normal at the vertex in eye space
@@ -150,48 +115,26 @@
 
         void main() {
             float shininess = 300.0;
-
             vec3 lightPos = vec3(10.0, 10.0, 100000000000.0);
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
-
             vec3 lightPos2 = vec3(100000.0, 1000.0, 100.0);
-
             vec3 N = normalize(vNormal);
             vec3 L = normalize(lightPos - vertPos);
             vec3 V = normalize(-vertPos);
             vec3 H = normalize(L + V);
-
             vec3 L2 = normalize(lightPos2 - vertPos);
             vec3 H2 = normalize(L2 + V);
-
             vec3 color = texture2D(texture, vUv).rgb;
             float diffuseLambertian = max(dot(N, L), 0.0);
             float diffuseLambertian2 = max(dot(N, L2), 0.0);
             float specularHighlight = pow(max(dot(V, reflect(-L, N)), 0.0), shininess);
             float specularHighlight2 =  pow(max(dot(V, reflect(-L2, N)), 0.0), shininess);
-
             if (isCharacter == 1.0) {
                 gl_FragColor = 2.0 * vec4(color * (diffuseLambertian + specularHighlight + diffuseLambertian2 + specularHighlight2), 1.0); 
             } else {
                 float ambient = 0.8;
                 gl_FragColor = vec4(color * (0.2 * diffuseLambertian + 0.2 * diffuseLambertian2 + 0.2 * specularHighlight + 0.2 * specularHighlight2 + ambient), 1.0);
             }
-        }
-    </script>
-
-    <script id="fragmentShader1" type="x-shader/x-fragment">
-        precision highp float;
-        varying vec2 vUv;
-        varying vec3 vNormal; // fragment normal in eye space
-        varying vec4 vPosition; // fragment position in eye space
-        varying vec3 vertPos;
-
-        uniform sampler2D texture;
-        uniform float isCharacter;
-
-        void main() {
-            vec3 color = texture2D(texture, vUv).rgb;
-            gl_FragColor = vec4(color, 1.0);
         }
     </script>
 
@@ -437,7 +380,7 @@
                     si = Math.sin(ai);
                     ci = Math.cos(ai);
                     shapeData.positions.push((si * sj) * r + x, cj * r + y, (ci * sj) * r + z);
-                    shapeData.normals.push(si * sj, cj, ci * sj);
+                    shapeData.normals.push(-si * sj, -cj, -ci * sj);
                     shapeData.texCoords.push(Math.atan((cj * r) / si * sj), Math.acos(ci * sj));
                 }
             }
@@ -463,7 +406,7 @@
                 sj = Math.sin(aj);
                 cj = Math.cos(aj);
                 shapeData.positions.push(sj * r + x, cj * r + y, z);
-                shapeData.normals.push(sj, cj, 0.2);
+                shapeData.normals.push(-sj, -cj, -0.2);
                 shapeData.texCoords.push(aj, z);
             }
             for (i = 0; i < CYLINDER_DIV; i++) {
@@ -471,7 +414,7 @@
                 sj = Math.sin(aj);
                 cj = Math.cos(aj);
                 shapeData.positions.push(sj * r * div + x, cj * r * div + y, z + h);
-                shapeData.normals.push(sj, cj, 0.2);
+                shapeData.normals.push(-sj, -cj, -0.2);
                 shapeData.texCoords.push(aj, z + h);
             }
             for (j = 0; j < CYLINDER_DIV; j++) {
@@ -762,33 +705,6 @@
                 gl.useProgram(null);
             };
 
-            program1 = createGlslProgram(gl, "vertexShader1", "fragmentShader1");
-            program1.texture = gl.getUniformLocation(program1, "texture");
-            program1.xform_projMat = gl.getUniformLocation(program1, "xform_projMat");
-            program1.xform_viewMat = gl.getUniformLocation(program1, "xform_viewMat");
-            program1.xform_modelMat = gl.getUniformLocation(program1, "xform_modelMat");
-            program1.vert_position = gl.getAttribLocation(program1, "vert_position");
-            program1.vert_texCoord = gl.getAttribLocation(program1, "vert_texCoord");
-            program1.vert_normal = gl.getAttribLocation(program1, "vert_normal");
-            program1.transform_Mat = gl.getUniformLocation(program1, "transform_Mat");
-
-            program1.draw = function (gl, shape, initialize) {
-                gl.useProgram(program1);
-                initialize();
-                gl.bindBuffer(gl.ARRAY_BUFFER, shape.vertexBuffer);
-                gl.enableVertexAttribArray(program1.vert_position);
-                gl.vertexAttribPointer(program1.vert_position, 3, gl.FLOAT, false, shape.stride, shape.positionOffset);
-                gl.enableVertexAttribArray(program0.vert_texCoord);
-                gl.vertexAttribPointer(program1.vert_texCoord, 2, gl.FLOAT, false, shape.stride, shape.texCoordOffset);
-                gl.enableVertexAttribArray(program0.vert_normal);
-                gl.vertexAttribPointer(program1.vert_normal, 3, gl.FLOAT, false, shape.stride, shape.normalOffset);
-                gl.bindBuffer(gl.ARRAY_BUFFER, null);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shape.indexBuffer);
-                gl.drawElements(gl.TRIANGLES, shape.size, gl.UNSIGNED_SHORT, 0);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-                gl.useProgram(null);
-            };
-
             programSky = createGlslProgram(gl, "skyboxVertexShader", "skyboxFragmentShader");
             programSky.texture = gl.getUniformLocation(programSky, "uTexture");
             programSky.xform_projMat = gl.getUniformLocation(programSky, "xform_projMat");
@@ -942,7 +858,6 @@
                 });
             }
             var compressedTime;
-
 
             function drawShape(gl, shape, texture, transmat, isCharacter, scalemat) {
                 program0.draw(gl, shape, function () {
